@@ -71,9 +71,10 @@ sudo modprobe dw9719
 ```
 
 Replace `XXXXXX` with the exact inspected build directory printed by the build
-script. Do not execute the unload line while a camera application is running.
-If `modprobe -r` reports an in-use dependency, stop and report it rather than
-forcing an unload.
+script. The installer locates the packaged DW9719 module below the target
+kernel's `kernel/drivers/media/i2c/` tree, compares its vermagic with the
+patched artifact, and normalizes only trailing whitespace before requiring an
+exact match. Do not run while a camera application is active.
 
 EXPECTED RESULT:
 `dw9719` binds to `i2c-INT347A:00-VCM`; its asynchronous registration completes

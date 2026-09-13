@@ -27,6 +27,12 @@ This builds the upstream DW9719 backport in an ignored workspace, checks the
 exact target headers and vermagic, and fails unless `i2c:dw9719` is exported.
 It neither installs nor loads the module.
 
+The experimental privileged installer adds a second gate before copying a
+module: it must find the packaged DW9719 module for `7.0.0-31-generic` and its
+vermagic must equal the patched artifact after removal of trailing whitespace
+only. This check is intentionally against the installed stock module, not an
+assumed version string.
+
 ## Enumeration
 
 ```bash
