@@ -1,0 +1,7 @@
+# Locally collected hardware reports and captured camera frames may contain
+# machine-specific details or personal imagery. Keep them out of the project.
+artifacts/
+baseline-*/
+capture-*/
+*.dng
+frame-*.bin
