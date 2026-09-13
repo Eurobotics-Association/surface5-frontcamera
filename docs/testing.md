@@ -64,6 +64,25 @@ changing the scene to distinguish an initialization artifact from stale data.
 These checks do not establish color calibration or visual quality; inspect a
 private local capture separately if needed.
 
+## Host validation and visual evidence
+
+Run only in the normal Zorin desktop host session:
+
+```bash
+./tests/host-validation.sh
+```
+
+It retains private logs, raw NV12 frames, hashes, statistics, and JPEGs under
+`~/Pictures/surface5-frontcamera-tests/<timestamp>/`, including frame 000000,
+the `frame-000001-BLACK-STARTUP.jpg`, frame 000002, a middle frame, and a final
+frame. It prints the exact path and an `xdg-open` command. Do not commit these
+personal images or raw frames.
+
+The known frame-000001 SHA-256 is
+`9ee1d13fd6ed345f060ab756351293df8c9fedf100c25a4366a9c249bc9c95f6`; its Y
+plane is entirely zero and is reported as a canonical startup frame, not frozen
+output. Additional black/uniform frames and exact repeats remain diagnostics.
+
 ## Restart resilience
 
 ```bash

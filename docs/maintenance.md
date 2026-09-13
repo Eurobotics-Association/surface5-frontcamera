@@ -36,6 +36,11 @@ The included DKMS metadata retains `AUTOINSTALL="no"`. Automatic DKMS builds
 cannot by themselves make the per-kernel native-fix decision, so enabling them
 would risk masking an official repair on a later kernel.
 
+`tests/host-validation.sh` is intentionally separate from maintenance: it
+never installs, unloads, reloads, or otherwise changes a kernel module. It is
+a normal-user validation workflow and retains private visual evidence below
+`~/Pictures/surface5-frontcamera-tests/`, outside the repository.
+
 ## Required final installer behavior
 
 The kernel-aware installer accepts a target kernel and performs these checks in

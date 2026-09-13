@@ -72,9 +72,10 @@ def main() -> int:
 
     y_bytes = args.width * args.height
     print("# NV12 Y-plane statistics; no image data is emitted")
-    print("frame\tmin\tmax\tmean\tstddev\tdistinct\tdistinct_%\tblack\tuniform\texact_previous\tchanged_%\tmean_abs_delta")
+    print("frame\tmin\tmax\tmean\tstddev\tdistinct\tdistinct_%\tblack\tuniform\tcanonical_startup_black\texact_previous\tchanged_%\tmean_abs_delta")
     previous = None
     suspicious = 0
+    canonical_startup_black = 0
     for path in args.frames:
         try:
             current, stats = y_statistics(path, y_bytes)
@@ -83,6 +84,12 @@ def main() -> int:
             return 2
         if stats["black"] == "yes" or stats["uniform"] == "yes":
             suspicious += 1
+        startup_black = (
+            stats["black"] == "yes"
+            and os.path.basename(path).startswith("frame-000001")
+        )
+        if startup_black:
+            canonical_startup_black += 1
         if previous is None:
             exact, changed, mean_delta = False, 100.0, 0.0
             exact_text = "n/a"
@@ -93,13 +100,14 @@ def main() -> int:
             f"{os.path.basename(path)}\t{stats['min']}\t{stats['max']}\t"
             f"{stats['mean']:.3f}\t{stats['stddev']:.3f}\t{stats['distinct']}\t"
             f"{stats['distinct_percent']:.2f}\t{stats['black']}\t{stats['uniform']}\t"
-            f"{exact_text}\t{changed:.3f}\t{mean_delta:.3f}"
+            f"{'yes' if startup_black else 'no'}\t{exact_text}\t{changed:.3f}\t{mean_delta:.3f}"
         )
         previous = current
     if suspicious:
         print(f"SUMMARY suspicious_black_or_uniform_frames={suspicious}/{len(args.frames)}")
     else:
         print(f"SUMMARY suspicious_black_or_uniform_frames=0/{len(args.frames)}")
+    print(f"SUMMARY canonical_startup_black_frames={canonical_startup_black}/{len(args.frames)}")
     return 0
 
 

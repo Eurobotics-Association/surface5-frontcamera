@@ -66,6 +66,13 @@ Verified results from that test:
 - a 1280x720 NV12 capture produced frame data;
 - five independent stop/start capture cycles completed.
 
+A 16-frame host capture confirmed image-bearing, changing frames at about
+28--30 fps. The recurring SHA-256
+`9ee1d13fd6ed345f060ab756351293df8c9fedf100c25a4366a9c249bc9c95f6` is exactly
+the all-zero `frame-000001` startup frame (Y min/max/mean/stddev = 0/0/0/0,
+one distinct value). It is transient and not frozen output; later frames vary.
+Its origin remains a separate IPU3/libcamera/sensor-startup investigation.
+
 This verifies the upstream DW9719 restoration on the target generic kernel.
 It does **not** yet verify image quality, frame motion, PipeWire/application
 use, or the IPA-tuning layer. No personal frame data is retained in Git.

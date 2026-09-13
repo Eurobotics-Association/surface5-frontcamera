@@ -24,11 +24,10 @@ completed the CIO2 graph, exposed OV5693 and `Internal front camera`, produced
 1280x720 NV12 frame data, and completed five independent start/stop cycles.
 No kernel switch or reboot was required.
 
-This is not yet a claim that the camera is fully solved. One first frame had
-the same whole-frame hash in the initial capture and each independent cycle;
-pixel-level analysis is being added to determine whether it is an
-initialization/stale frame or another behavior. IPU3 tuning and ordinary
-PipeWire/desktop application use also remain separate validation layers.
+This is not yet a claim that the camera is fully solved. The recurring
+`frame-000001` is now identified as an all-zero startup frame, not frozen
+output; subsequent frames vary normally. IPU3 tuning and ordinary
+PipeWire/desktop application use remain separate validation layers.
 
 A subsequent read-only snapshot found the VCM still bound but no media/video
 nodes in the restricted agent execution namespace. That namespace overlays
@@ -58,7 +57,13 @@ by default.
 ./tests/restart-stream.sh --cycles 5
 ./scripts/build-dw9719-7.0.sh
 ./scripts/status.sh
+./tests/host-validation.sh
 ```
+
+`host-validation.sh` must run in the normal host desktop session. It retains
+private logs, raw frames, hashes, statistics, and selected JPEGs under
+`~/Pictures/surface5-frontcamera-tests/<timestamp>/`; these images are never
+committed and must be handled as personal data.
 
 `capture.sh` records temporary raw frames only for objective checks (count,
 size, SHA-256, Y-plane statistics, and duplicate-frame detection). It deletes

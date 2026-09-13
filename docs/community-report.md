@@ -2,9 +2,9 @@
 
 ## Status
 
-**Not ready to post.** The DW9719 fix itself is experimentally verified, but
-pixel-level image validity and the repeated-first-frame observation still need
-characterization. Do not post until those results are separated clearly.
+**Not ready to post.** DW9719 repair and changing image data are verified. The
+repeated frame is characterized as a black startup frame, but desktop/PipeWire
+validation and visual review remain before posting.
 
 ## Existing discussions to update after verification
 
