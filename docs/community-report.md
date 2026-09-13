@@ -2,9 +2,9 @@
 
 ## Status
 
-**Not ready to post.** The module build and alias inspection are verified, but
-no patched module has yet been installed or tested against the hardware. Do
-not post a speculative report.
+**Not ready to post.** The DW9719 fix itself is experimentally verified, but
+pixel-level image validity and the repeated-first-frame observation still need
+characterization. Do not post until those results are separated clearly.
 
 ## Existing discussions to update after verification
 
@@ -31,11 +31,23 @@ new, distinct OV5693 defect is verified.
 > I built only `dw9719` from the exact Ubuntu 7.0 source baseline with upstream
 > `d7fe0d53b2a8b08f6042cc89315118dee49e072e` backported. The artifact's
 > vermagic matched and it exported `i2c:dw9719` plus the other restored IDs.
-> **[Replace this paragraph with verified binding, graph, libcamera, capture,
-> restart, reboot, and rollback results.]**
+> The `/updates/dkms/dw9719.ko` override was selected, bound to
+> `i2c-INT347A:00-VCM`, and completed the CIO2 graph. `dw9719 3-000c` appeared
+> as a Lens subdevice, OV5693 appeared in the graph, libcamera registered
+> `Internal front camera`, 1280x720 NV12 capture produced data, and five fresh
+> start/stop cycles completed without a reboot.
+>
+> A separate observation remains under investigation: the same whole-frame
+> SHA-256 (`9ee1d13fd6ed345f060ab756351293df8c9fedf100c25a4366a9c249bc9c95f6`)
+> occurred as frame 000001 in the initial capture and every independent cycle.
+> Do not interpret this as a DW9719 failure; pixel-level statistics and a
+> changed-scene retest are pending. The libcamera IPU3 IPA also lacks an
+> `ov5693.yaml` tuning file and falls back to `uncalibrated.yaml`; that is a
+> separate tuning/image-quality layer.
 >
 > Reproducible source, diagnostics, and non-sensitive evidence:
 > https://github.com/Eurobotics-Association/surface5-frontcamera
 
-Before posting, replace every bracketed section with actual command results;
-include no imagery, serial numbers, host names, credentials, or assumptions.
+Before posting, add actual pixel statistics, graph-persistence, application,
+and rollback results; include no imagery, serial numbers, host names,
+credentials, or assumptions.

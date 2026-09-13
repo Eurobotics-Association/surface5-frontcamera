@@ -51,9 +51,59 @@ present. Neither affects module loading or aliases. No `dkms` package is
 installed, so the reviewed source contains a DKMS configuration for a later,
 operator-approved persistent setup but the current test uses no DKMS install.
 
-## Proposed privileged live test — pending build inspection and approval
+## 2026-09-13 — DW9719 live test verified on Ubuntu generic 7.0
 
-Do not run this procedure until the uninstalled build has passed inspection.
+The controlled live test was performed on this Surface Pro 5 while running
+Zorin OS 18.1 (Ubuntu 24.04 base), `7.0.0-31-generic`. The local
+`/updates/dkms/dw9719.ko` was selected instead of the packaged module. The
+patched driver bound to `i2c-INT347A:00-VCM` and the CIO2 graph completed.
+
+Verified results from that test:
+
+- `dw9719 3-000c` appeared as a Lens subdevice;
+- OV5693 appeared in the media graph;
+- libcamera registered `Internal front camera`;
+- a 1280x720 NV12 capture produced frame data;
+- five independent stop/start capture cycles completed.
+
+This verifies the upstream DW9719 restoration on the target generic kernel.
+It does **not** yet verify image quality, frame motion, PipeWire/application
+use, or the IPA-tuning layer. No personal frame data is retained in Git.
+
+### Post-test state drift
+
+A later read-only snapshot found the VCM still bound and camera modules loaded,
+but `/dev/media*` and `/dev/video*` absent; `cam -l` again reported no cameras.
+`cam` specifically warned that `/dev/media0` and `/dev/media1` should exist
+but do not. No module or kernel action was taken during that inspection. This
+conflicts with the successful live-test graph and is an unresolved
+reproducibility/state issue, not a retraction of the observed success. A
+controlled reprobe and fresh statistics capture are required before declaring
+robust operation.
+
+### Portable enumeration-test correction
+
+`tests/enumeration.sh` had falsely reported a missing front camera in a
+successful test environment solely because its `rg` command was unavailable.
+It now uses standard `grep -qiE`; the direct `grep` match against `Internal
+front camera` passes without `rg`. A rerun at the later drift snapshot correctly
+fails for the actual missing media nodes and empty `cam -l` result, rather than
+for a missing text-search dependency. The supporting collection/build scripts
+also now use `grep` instead of an unnecessary `rg` dependency.
+
+### Desktop-path inventory (not a usability claim)
+
+The target packages include `pipewire-libcamera`, `xdg-desktop-portal`,
+GStreamer `libcamerasrc`, and Cheese. During the later missing-media-node
+snapshot, PipeWire had no camera/libcamera/video node and `cam -l` was empty,
+so no PipeWire, portal, browser, or desktop-application result is recorded.
+Once the graph is restored, test the installed GStreamer path first, then
+PipeWire/portal and a graphical application.
+
+## Historical controlled live-test procedure
+
+This procedure was used for the verified first live test. It remains useful
+for a controlled reproduction, but is no longer described as pending.
 It installs one external module under `/lib/modules`, updates module dependency
 metadata, and binds the existing VCM on the running kernel. It does not install
 another kernel, unload camera modules, or reboot.
@@ -108,6 +158,6 @@ a camera application is active; it must never use forced module removal.
 
 ## Pending results
 
-Awaiting uninstalled build inspection, then explicit operator approval for the
-live module test. Do not mark the front camera fixed until real OV5693 frames,
-restart resilience, and an application-facing path have all passed.
+Pixel-level validity, repeated-first-frame characterization, graph persistence,
+and normal desktop camera-path validation remain outstanding. Do not mark the
+front camera fully fixed until those checks pass.

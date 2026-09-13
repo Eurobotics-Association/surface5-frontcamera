@@ -50,14 +50,19 @@ even on failure.
 ./tests/capture.sh --width 1280 --height 720 --frames 16
 ```
 
-The capture test chooses the front camera listed by `cam -l`, captures raw
+The capture test chooses the front camera listed by `cam -l`, requests NV12 raw
 frames with libcamera, and verifies command success, requested frame count,
-nonzero file sizes, and that not every SHA-256 hash is identical. Captures are
-kept only with `--keep`; no imagery belongs in Git.
+nonzero and non-truncated NV12 file sizes, and that not every SHA-256 hash is
+identical. It also reports Y-plane minimum, maximum, mean, standard deviation,
+luminance diversity, black/near-uniform flags, and successive-frame
+comparisons. Captures are kept only with `--keep`; no imagery belongs in Git.
 
-These checks detect zero-byte and frozen-output patterns objectively. They do
-not establish color calibration or visual quality; inspect a private local
-capture separately if needed.
+All-black or near-uniform sequences and completely frozen Y-plane sequences
+fail the test. A single suspicious frame or repeated first frame across fresh
+cycles is explicitly reported but does not alone fail: repeat the test while
+changing the scene to distinguish an initialization artifact from stale data.
+These checks do not establish color calibration or visual quality; inspect a
+private local capture separately if needed.
 
 ## Restart resilience
 
@@ -75,9 +80,15 @@ After native capture passes:
 
 ```bash
 gst-launch-1.0 -e libcamerasrc ! queue ! fakesink num-buffers=30
-pw-cli ls Node | rg -i 'camera|libcamera|video'
+pw-cli ls Node | grep -iE 'camera|libcamera|video'
 ```
 
 Record return status and relevant output in `docs/changes.md`. Only test a
 normal desktop application when a graphical session is available; do not claim
 PipeWire or application success merely because the packages are installed.
+
+On the target system `pipewire-libcamera`, `xdg-desktop-portal`, the
+GStreamer libcamera plugin, and Cheese are installed. That only establishes the
+available desktop path. A post-live-test snapshot has no PipeWire camera nodes
+because the underlying media device nodes have disappeared; no desktop test is
+valid until the kernel graph is present again.

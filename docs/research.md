@@ -71,15 +71,17 @@ driver source. Its mechanism is independently verified on this computer:
 | Running `7.0.0-31-generic` | OF aliases only | Cannot match local `i2c:dw9719` VCM |
 | Installed `6.18.7-surface-1` | includes `i2c:dw9719` | Has the necessary match alias |
 
-The upstream fix is selected for an uninstalled, exact-header module build.
+The upstream fix was selected for an exact-header module build.
 The 6.18 linux-surface module is comparison evidence only; no kernel downgrade
 or 6.18 boot is part of this project plan.
 
 The resulting external module was compiled successfully with the installed
 `linux-headers-7.0.0-31-generic`. `modinfo` confirmed matching vermagic and all
-four restored I2C aliases. It was inspected only; it has not been copied into
-`/lib/modules`, loaded, or bound. This proves build/API compatibility and
-expected module metadata, not hardware functionality.
+four restored I2C aliases. It was then installed as a per-kernel override and
+loaded on this machine: the VCM bound, the CIO2 graph completed, libcamera
+registered the front camera, and NV12 frame data plus five stop/start cycles
+were observed. This verifies the DW9719 diagnosis and patch. Image validity
+and normal application use remain separate tests.
 
 The related [linux-surface issue #2225](https://github.com/linux-surface/linux-surface/issues/2225)
 describes the same modalias mismatch and its effect on the asynchronous media
@@ -110,6 +112,25 @@ and its [documentation](https://libcamera.org/docs.html) are relevant after
 enumeration. Version `0.2.0` is materially older than current upstream, so a
 later userspace upgrade can be considered only if a supported kernel graph
 still fails in the libcamera layer.
+
+### Separate IPA tuning-file warning
+
+On this installed libcamera `0.2.0-3fakesync1build6`, the IPU3 IPA module is
+`/usr/lib/x86_64-linux-gnu/libcamera/ipa_ipu3.so` and its configuration
+directory is `/usr/share/libcamera/ipa/ipu3/`. Package inspection finds only
+`uncalibrated.yaml`, which enables baseline AF/AGC/AWB/black-level/tone-mapping
+algorithms; no `ov5693.yaml` or `ov8865.yaml` is shipped. The warning therefore
+means sensor-specific tuning is unavailable and libcamera deliberately falls
+back to that generic configuration.
+
+The [libcamera IPU3 tuning-file proposal](https://patchwork.libcamera.org/patch/16895/)
+and current linux-surface reports show this fallback is intended to allow the
+pipeline to run, but it can affect colour, black level, white balance, and
+overall image quality. It is not evidence that DW9719 binding failed. No
+sensor tuning file will be installed or copied until hardware-appropriate
+provenance and objective capture evidence exist. The normal Noble repositories
+offer no newer libcamera candidate on this machine, so replacing libcamera is
+not currently justified.
 
 V4L2 loopback is available locally but deliberately not loaded or configured.
 It can provide compatibility for applications expecting a conventional webcam,

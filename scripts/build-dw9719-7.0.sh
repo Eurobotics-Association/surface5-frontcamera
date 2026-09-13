@@ -25,8 +25,8 @@ make -C "$header_dir" M="$work" modules
 module="$work/dw9719.ko"
 [ -f "$module" ] || { echo "error: expected module not produced: $module" >&2; exit 1; }
 echo "Built module: $module"
-modinfo "$module" | rg '^(filename|vermagic|name|alias):'
-modinfo "$module" | rg -q '^alias:[[:space:]]+i2c:dw9719$' || {
+modinfo "$module" | grep -E '^(filename|vermagic|name|alias):'
+modinfo "$module" | grep -qE '^alias:[[:space:]]+i2c:dw9719$' || {
     echo 'error: built module lacks i2c:dw9719 alias' >&2
     exit 1
 }

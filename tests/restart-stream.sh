@@ -20,11 +20,26 @@ while (($#)); do
 done
 [[ "$cycles" =~ ^[1-9][0-9]*$ ]] || { echo 'error: cycles must be positive' >&2; exit 2; }
 
+work=$(mktemp -d "${TMPDIR:-/tmp}/surface-camera-restart.XXXXXX")
+trap 'rm -rf "$work"' EXIT
+
 for ((cycle = 1; cycle <= cycles; cycle++)); do
     echo "== start/stop cycle $cycle of $cycles =="
-    if ! "$(dirname "$0")/capture.sh" --frames "$frames" --width "$width" --height "$height"; then
+    log="$work/cycle-$cycle.txt"
+    if ! "$(dirname "$0")/capture.sh" --frames "$frames" --width "$width" --height "$height" >"$log" 2>&1; then
+        cat "$log"
         echo "FAIL: cycle $cycle failed" >&2
         exit 1
     fi
+    cat "$log"
+    first_hash=$(awk -F= '/^first_frame_sha256=/ { print $2; exit }' "$log")
+    [ -n "$first_hash" ] || { echo "FAIL: cycle $cycle did not report a first-frame hash" >&2; exit 1; }
+    printf '%s\t%s\n' "$cycle" "$first_hash" >>"$work/first-frame-hashes.tsv"
 done
+unique_first=$(awk '{print $2}' "$work/first-frame-hashes.tsv" | sort -u | wc -l)
+if [ "$unique_first" -lt "$cycles" ]; then
+    echo 'WARNING: one or more independent cycles share an identical first-frame hash.' >&2
+    echo 'This can be an initialization/stale-frame symptom or a deterministic scene; inspect NV12 statistics and repeat while changing the scene.' >&2
+    sort -k2,2 "$work/first-frame-hashes.tsv" | uniq -f1 -c >&2
+fi
 echo "PASS: all $cycles start/stop cycles completed."

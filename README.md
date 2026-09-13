@@ -18,21 +18,22 @@ solution and must not become the permanent camera kernel.
 
 ## Current status
 
-The initial baseline was collected on 2026-09-13. The camera is **not
-functional in the currently booted kernel**: no media or video device nodes
-exist, so libcamera and PipeWire enumerate no cameras.
+The upstream DW9719 I2C ID-table restoration is **verified** on the target
+kernel. The per-kernel `/updates/dkms/dw9719.ko` override bound the VCM,
+completed the CIO2 graph, exposed OV5693 and `Internal front camera`, produced
+1280x720 NV12 frame data, and completed five independent start/stop cycles.
+No kernel switch or reboot was required.
 
-The evidence currently points to a kernel-driver binding regression, not a
-missing OV5693 driver: the running Ubuntu `7.0.0-31-generic` kernel creates an
-`i2c:dw9719` focus-motor device but its `dw9719` module does not advertise the
-matching I2C alias. The installed, unbooted `6.18.7-surface-1` linux-surface
-kernel does advertise that alias. This is a diagnosis, not a claimed repair:
-no camera capture has yet succeeded.
+This is not yet a claim that the camera is fully solved. One first frame had
+the same whole-frame hash in the initial capture and each independent cycle;
+pixel-level analysis is being added to determine whether it is an
+initialization/stale frame or another behavior. IPU3 tuning and ordinary
+PipeWire/desktop application use also remain separate validation layers.
 
-The immediate repair path is an uninstalled build of the minimal upstream
-DW9719 fix against the current 7.0.0-31 headers. Its inspection and any live
-test are documented in [docs/changes.md](docs/changes.md); no kernel switch,
-module installation, or reboot has been performed.
+A subsequent read-only snapshot found the VCM still bound but no media/video
+nodes. That graph-persistence discrepancy is documented as an open
+reproducibility issue, not hidden by the successful initial test. See
+[docs/changes.md](docs/changes.md).
 
 ## Repository map
 
@@ -54,24 +55,40 @@ by default.
 ./tests/capture.sh --frames 8
 ./tests/restart-stream.sh --cycles 5
 ./scripts/build-dw9719-7.0.sh
+./scripts/status.sh
 ```
 
 `capture.sh` records temporary raw frames only for objective checks (count,
-size, SHA-256, and duplicate-frame detection). It deletes them by default;
-use `--keep` only when inspecting a local, private capture.
+size, SHA-256, Y-plane statistics, and duplicate-frame detection). It deletes
+them by default; use `--keep` only when inspecting a local, private capture.
+
+After the current kernel has passed the reviewed controlled test, the guarded
+maintenance commands are:
+
+```bash
+./scripts/status.sh
+sudo ./scripts/install.sh
+sudo ./scripts/uninstall.sh
+```
+
+`install.sh` first examines the target kernel's packaged (non-override)
+`dw9719` module. It does nothing when the packaged driver already advertises
+`i2c:dw9719`; it currently refuses every unreviewed ABI except
+`7.0.0-31-generic` rather than forcing an old source onto a later kernel.
 
 ## Safety
 
-No installer in this repository performs privileged actions. Kernel changes,
-module replacement, configuration changes, and reboots are always described
-with verification and rollback before execution.
+Only `scripts/install.sh`, `scripts/uninstall.sh`, and the historical
+per-kernel installer are privileged helpers. Kernel changes, module
+replacement, configuration changes, and reboots are always described with
+verification and rollback before execution.
 
 ## Maintenance and community feedback
 
-The current per-kernel install helper is only for the first controlled live
-test. A final installer will inspect a target kernel's native `dw9719` module
-and skip itself when the official fix is present, so it cannot mask a fixed
-Ubuntu kernel. See [maintenance.md](docs/maintenance.md).
+The generic installer inspects a target kernel's native `dw9719` module and
+skips itself when the official fix is present, so it cannot mask a fixed Ubuntu
+kernel. It is deliberately source/API-guarded while support for future ABIs is
+reviewed. See [maintenance.md](docs/maintenance.md).
 
 Verified findings will be prepared for the existing linux-surface and Ubuntu
 bug discussions, but are never posted under an operator identity without

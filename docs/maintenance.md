@@ -1,18 +1,45 @@
 # Maintenance design
 
-## Current state: controlled experiment only
+## Current state: verified 7.0 workaround with guarded maintenance
 
 `scripts/install-dw9719-7.0.sh` is deliberately restricted to
-`7.0.0-31-generic`. It supports the first live test only. It is not an upgrade
-strategy and the DKMS metadata has `AUTOINSTALL="no"` by design.
+`7.0.0-31-generic`. It was used for the controlled live test only. The
+validated module bound the VCM and exposed the SP5 front-camera pipeline, but
+this historical helper is not an upgrade strategy.
 
 The upstream defect is fixed. A stale out-of-tree module must never mask an
 officially fixed Ubuntu/Zorin kernel.
 
+The repository now provides a guarded wrapper:
+
+```bash
+./scripts/status.sh [kernel-release]
+sudo ./scripts/install.sh [kernel-release]
+sudo ./scripts/uninstall.sh [kernel-release]
+```
+
+`status.sh` locates the target's packaged module specifically below
+`/lib/modules/<kernel>/kernel/drivers/media/i2c/`, so it cannot mistake a local
+`/updates/` override for the native implementation. It returns success with
+`NATIVE_FIX_PRESENT` when that file exports `i2c:dw9719`, and returns status
+10 with `NATIVE_FIX_MISSING` otherwise. It reports a local override separately.
+
+`install.sh` builds and installs nothing when the native fix is present. For an
+affected kernel it requires matching headers, invokes the strict build and
+metadata checks, and currently permits only the reviewed
+`7.0.0-31-generic` ABI. Any other affected ABI is an intentional safe stop for
+source/API review. `uninstall.sh` removes only the local override for the named
+kernel, runs `depmod`, and never removes the packaged module or unloads a
+possibly in-use driver.
+
+The included DKMS metadata retains `AUTOINSTALL="no"`. Automatic DKMS builds
+cannot by themselves make the per-kernel native-fix decision, so enabling them
+would risk masking an official repair on a later kernel.
+
 ## Required final installer behavior
 
-After actual OV5693 capture has been proven, the final kernel-aware installer
-will accept a target kernel and perform these checks in order:
+The kernel-aware installer accepts a target kernel and performs these checks in
+order:
 
 1. require matching installed headers under `/lib/modules/<kernel>/build`;
 2. locate the target kernel's *native* `dw9719` module, excluding local
@@ -34,7 +61,7 @@ per-target native-fix guard.
 
 ### Normal package or kernel update
 
-After `apt upgrade` and booting the new kernel, run the future `status.sh`.
+After `apt upgrade` and booting the new kernel, run `status.sh`.
 If native `dw9719` exposes `i2c:dw9719`, remove any old override for that
 kernel and use the packaged driver. If it does not, the installer may build
 only after headers and source/API checks pass.
@@ -52,10 +79,12 @@ self-obsoleted: status reports `NATIVE FIX PRESENT`, no override is installed,
 and any per-kernel old override can be removed with the documented uninstall
 tool. Capture/restart tests should be repeated before retiring the workaround.
 
-## Deferred implementation decision
+## Adding support for a future affected ABI
 
-The generic `install.sh`, `status.sh`, and `uninstall.sh` are intentionally
-deferred until the live patch proves that DW9719 binding resolves this
-machine's first failure. This prevents a maintenance mechanism from
-institutionalizing an unproven workaround. The controlled scripts, source, and
-rollback already provide the evidence needed for that decision.
+Do not bypass the installer guard. First obtain the exact vendor source for
+the target kernel, verify that its native driver still lacks the I2C ID table,
+apply and inspect the upstream restoration, build against matching headers,
+and validate its aliases and vermagic. Only then extend the explicit reviewed
+ABI list and repeat media, capture, restart, and rollback tests. If the native
+module is fixed, remove any matching per-kernel override instead of extending
+the workaround.

@@ -23,7 +23,7 @@ cat "$log"
 if [ "$cam_status" -ne 0 ]; then
     note "FAIL: cam -l exited $cam_status"
     fail=1
-elif rg -qi 'Internal front camera|front camera' "$log"; then
+elif grep -qiE 'Internal front camera|front camera' "$log"; then
     note 'PASS: libcamera lists a front camera'
 else
     note 'FAIL: libcamera does not list a front camera'
