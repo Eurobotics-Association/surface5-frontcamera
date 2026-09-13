@@ -5,3 +5,10 @@ baseline-*/
 capture-*/
 *.dng
 frame-*.bin
+build/
+dkms/dw9719-ipu3-7.0-1.0/*.ko
+dkms/dw9719-ipu3-7.0-1.0/*.o
+dkms/dw9719-ipu3-7.0-1.0/*.mod*
+dkms/dw9719-ipu3-7.0-1.0/Module.symvers
+dkms/dw9719-ipu3-7.0-1.0/modules.order
+dkms/dw9719-ipu3-7.0-1.0/.tmp_versions/

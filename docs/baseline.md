@@ -17,7 +17,7 @@ change.
 | OS | Zorin OS 18.1, Ubuntu Noble base |
 | Running kernel | `7.0.0-31-generic`, package `7.0.0-31.31~24.04.1` |
 | Running kernel origin | Ubuntu HWE generic, not linux-surface |
-| Installed linux-surface kernel | `6.18.7-surface-1`, held; `6.19.8-surface-3` was the package candidate |
+| Installed linux-surface kernel | `6.18.7-surface-1`, held; reference only, not a proposed final solution |
 | Secure Boot state | disabled; platform setup mode |
 | IPU3 PCI function | `00:14.3`, Intel CSI-2 Host Controller `8086:9d32`, bound to `ipu3-cio2` |
 | Front sensor | `INT33BE:00`, bound to `ov5693` on I2C bus 2 |
@@ -59,7 +59,7 @@ The IPU3 bridge waits for all asynchronously registered camera components. An
 unbound VCM can therefore prevent the graph for the otherwise-bound OV5693
 front camera from completing. The graph failure is observed; the causal
 relationship is supported by the source audit in [research.md](research.md)
-and remains to be validated by booting a kernel with the matching alias.
+and is being validated with an exact minimal module build for this kernel.
 
 ## Userspace and firmware
 

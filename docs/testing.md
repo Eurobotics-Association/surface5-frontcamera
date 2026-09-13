@@ -4,7 +4,8 @@
 
 Run tests as the desktop user. They do not need sudo and do not load modules,
 modify media links, or retain imagery by default. A passing enumeration is not
-a capture pass.
+a capture pass. Tests and the module build target Ubuntu generic
+`7.0.0-31-generic`, not the installed linux-surface reference kernel.
 
 ## Baseline collection
 
@@ -15,6 +16,16 @@ a capture pass.
 The script creates a timestamped report under `/tmp` unless `--output DIR` is
 specified. It redacts the DMI serial number and records unavailable commands
 or inaccessible kernel logs explicitly.
+
+## Module inspection
+
+```bash
+./scripts/build-dw9719-7.0.sh
+```
+
+This builds the upstream DW9719 backport in an ignored workspace, checks the
+exact target headers and vermagic, and fails unless `i2c:dw9719` is exported.
+It neither installs nor loads the module.
 
 ## Enumeration
 

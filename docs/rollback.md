@@ -5,21 +5,21 @@
 The initial milestone adds only repository files and runs read-only commands.
 There is no system-level change to roll back.
 
-## One-time linux-surface boot experiment
+## DW9719 external-module rollback
 
-If the proposed experiment in [changes.md](changes.md) causes a problem,
-reboot and select `7.0.0-31-generic` from the boot loader's normal or advanced
-kernel entries. `7.0.0-30-generic` is also installed. The plan deliberately
-does not change the default entry, remove kernels, alter initramfs, or modify
-boot configuration.
-
-Verify rollback with:
+The only proposed system change targets `7.0.0-31-generic` and places a
+reviewed `dw9719.ko` in `/lib/modules/$(uname -r)/updates/dkms/`. To return to
+the packaged Ubuntu module:
 
 ```bash
-uname -r
+cd /home/aev/Github/surface5-frontcamera
+sudo ./scripts/uninstall-dw9719-7.0.sh
+sudo reboot
 ```
 
-Then re-run `./tests/enumeration.sh` to document the restored baseline.
+Verify rollback with `uname -r`, `modinfo dw9719`, and
+`./tests/enumeration.sh`. This neither switches kernels nor changes the boot
+default. The older linux-surface kernel is not used as part of rollback.
 
 ## Future module or package intervention
 

@@ -16,7 +16,9 @@ IPU3 IMGU + firmware ──► libcamera IPU3 pipeline ──► PipeWire/GStrea
 The Surface Pro 5 uses raw MIPI sensors, not a USB/UVC webcam. The kernel
 must construct the media graph first; libcamera then runs the IPU3 pipeline.
 Most conventional applications consume PipeWire or V4L2-style camera devices,
-so successful sensor detection alone is insufficient.
+so successful sensor detection alone is insufficient. The target kernel for
+every repair and validation in this project is Ubuntu generic 7.x, currently
+`7.0.0-31-generic`.
 
 ## Machine-specific component mapping
 

@@ -19,7 +19,42 @@ payload is present and the IMGU driver is loaded. This rules out the most basic
 missing-firmware explanation for the current no-node failure, but does not
 prove processing succeeds.
 
-## Candidate: DW9719 I2C ID-table regression
+## Confirmed: DW9719 I2C ID-table regression
+
+Upstream commit
+[`15faf0fa1472d1da301498a2e33cdaffe84bc4f1`](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=15faf0fa1472d1da301498a2e33cdaffe84bc4f1)
+(`media: i2c: dw9719: Remove unused i2c device id table`) removed the I2C ID
+table. Upstream commit
+[`d7fe0d53b2a8b08f6042cc89315118dee49e072e`](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=d7fe0d53b2a8b08f6042cc89315118dee49e072e)
+(`media: dw9719: Add back the I2C device id table`) restores it. The Ubuntu
+Kernel Team's [HWE 7.0 SRU submission](https://lists.ubuntu.com/archives/kernel-team/2026-August/170639.html)
+is an unmodified cherry-pick and explicitly links [Launchpad bug #2162045](https://bugs.launchpad.net/bugs/2162045).
+
+The local normal repositories still have `7.0.0-31.31~24.04.1` as the candidate
+for `linux-generic-hwe-24.04`, `linux-image-generic-hwe-24.04`, and
+`linux-headers-generic-hwe-24.04`; no newer generic 7.x package is available.
+The SRU therefore cannot yet be consumed as a normal system update here.
+
+### Exact current-source comparison
+
+The current module package is `linux-modules-7.0.0-31-generic`
+`7.0.0-31.31~24.04.1`. The exact Ubuntu source tag is
+`Ubuntu-hwe-7.0-7.0.0-31.31_24.04.1` (dereferenced commit
+`cc909f9a3d277832d246c6493bbc06e0955cde2e`). This machine has no `deb-src`
+repository, so the source package delta was downloaded directly from the
+configured Ubuntu archive and audited. It does not touch
+`drivers/media/i2c/dw9719.c`; the v7.0 base file is therefore the shipped file
+for this driver.
+
+Direct inspection of that source confirms it lacks all three required parts:
+
+- `static const struct i2c_device_id dw9719_id_table[]`;
+- `MODULE_DEVICE_TABLE(i2c, dw9719_id_table)`;
+- `.id_table = dw9719_id_table` in `dw9719_i2c_driver`.
+
+This agrees with the active built module's OF-only aliases and local
+`i2c:dw9719` VCM modalias. It is a confirmed match to the regression, rather
+than an inference from a kernel version alone.
 
 [linux-surface PR #2123](https://github.com/linux-surface/linux-surface/pull/2123)
 is open at the time of research. Its actual proposed diff restores a
@@ -27,21 +62,24 @@ is open at the time of research. Its actual proposed diff restores a
 it to the I2C driver's `.id_table`. The table includes `dw9719`, `dw9718s`,
 `dw9761`, and `dw9800k`.
 
-The proposed patch is intended for linux-surface 6.19, not specifically the
-Ubuntu 7.0 HWE package currently booted here. It must not be applied blindly
-to a different kernel. However, its mechanism is independently verified on
-this computer:
+The linux-surface PR is corroborating community material. The primary fix for
+this machine is the upstream commit above, applied to the exact Ubuntu 7.0
+driver source. Its mechanism is independently verified on this computer:
 
 | Kernel/module | `dw9719` aliases | Result |
 | --- | --- | --- |
 | Running `7.0.0-31-generic` | OF aliases only | Cannot match local `i2c:dw9719` VCM |
 | Installed `6.18.7-surface-1` | includes `i2c:dw9719` | Has the necessary match alias |
 
-The PR is therefore highly applicable as an explanation of the active state,
-but **not yet a selected backport**. The first experiment should use the
-already installed kernel that demonstrably retains the matching alias. A
-separate, source-level compatibility audit is required before building any
-Ubuntu 7.0 replacement module.
+The upstream fix is selected for an uninstalled, exact-header module build.
+The 6.18 linux-surface module is comparison evidence only; no kernel downgrade
+or 6.18 boot is part of this project plan.
+
+The resulting external module was compiled successfully with the installed
+`linux-headers-7.0.0-31-generic`. `modinfo` confirmed matching vermagic and all
+four restored I2C aliases. It was inspected only; it has not been copied into
+`/lib/modules`, loaded, or bound. This proves build/API compatibility and
+expected module metadata, not hardware functionality.
 
 The related [linux-surface issue #2225](https://github.com/linux-surface/linux-surface/issues/2225)
 describes the same modalias mismatch and its effect on the asynchronous media
@@ -83,7 +121,7 @@ initial repair.
 - Third-party installers/DKMS recipes: not run. They can modify modules,
   initramfs, and boot behavior; each relevant modification needs source and
   compatibility review first.
-- Updating to `6.19.8-surface-3`: not selected. The package is held and the
-  documented DW9719 regression is specifically reported between 6.18 and 6.19.
+- Updating to or booting a linux-surface kernel: not selected. The required
+  final solution targets Ubuntu generic 7.x directly.
 - New OV5693 driver work: unjustified. The sensor binds; a lower-layer graph
   blocker is observed first.

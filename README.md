@@ -3,6 +3,19 @@
 Reproducible investigation of the Microsoft Surface Pro 5 (model 1796) front
 camera (OmniVision OV5693) on Zorin OS.
 
+## Design target
+
+```text
+Microsoft Surface Pro 5 (1796)
+Zorin OS 18.1 / Ubuntu 24.04 base
+Ubuntu generic kernel 7.x
+Current development target: 7.0.0-31-generic
+```
+
+The older installed `6.18.7-surface-1` linux-surface kernel is a source and
+module comparison reference only. It is **not** this project's intended
+solution and must not become the permanent camera kernel.
+
 ## Current status
 
 The initial baseline was collected on 2026-09-13. The camera is **not
@@ -16,10 +29,10 @@ matching I2C alias. The installed, unbooted `6.18.7-surface-1` linux-surface
 kernel does advertise that alias. This is a diagnosis, not a claimed repair:
 no camera capture has yet succeeded.
 
-The next safe experiment is documented in [docs/changes.md](docs/changes.md):
-boot the already installed linux-surface kernel once and run the test suite. It
-requires an operator-approved reboot, makes no package or configuration change,
-and preserves the generic kernel as a fallback.
+The immediate repair path is an uninstalled build of the minimal upstream
+DW9719 fix against the current 7.0.0-31 headers. Its inspection and any live
+test are documented in [docs/changes.md](docs/changes.md); no kernel switch,
+module installation, or reboot has been performed.
 
 ## Repository map
 
@@ -40,6 +53,7 @@ by default.
 ./tests/enumeration.sh
 ./tests/capture.sh --frames 8
 ./tests/restart-stream.sh --cycles 5
+./scripts/build-dw9719-7.0.sh
 ```
 
 `capture.sh` records temporary raw frames only for objective checks (count,
