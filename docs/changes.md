@@ -183,3 +183,19 @@ recover when normal logind ACLs granted `aev` read/write access. After
 and `\_SB_.PCI0.I2C2.CAMF`; PipeWire gained both libcamera devices/sources,
 the front source became default, and portal `IsCameraPresent` changed false to
 true. This is verified stale WirePlumber state after startup-time ACL failure.
+
+### Current browser boundary
+
+After recovery, `wpctl` lists front and rear libcamera devices
+(`libcamera_device.\_SB_.PCI0.I2C2.CAMF` and
+`libcamera_device.\_SB_.PCI0.I2C3.CAMR`) and corresponding sources; the front
+source is the default. The Camera portal is present (`IsCameraPresent=true`).
+Brave 1.95.101 (Chromium 153.0.8010.37, native DEB, Wayland) requests and is
+granted site camera permission at webcamtests.com, but reports
+`NotFoundError: Requested device not found`. This isolates the remaining
+functional investigation to Brave's WebRTC camera backend, not permissions,
+PipeWire enumeration, or the camera stack.
+
+The next non-persistent controlled test is launching Brave with
+`--enable-features=WebRtcPipeWireCamera`. Do not record it as a fix unless the
+site actually enumerates and streams the front camera.

@@ -6,6 +6,10 @@
 recovery are verified. Browser retest and login-time persistence remain before
 posting.
 
+The post-recovery PipeWire sources and Camera portal are verified; current
+Brave WebRTC `NotFoundError` is being tested separately and is not attributed
+to DW9719.
+
 ## Existing discussions to update after verification
 
 - [linux-surface issue #2225](https://github.com/linux-surface/linux-surface/issues/2225): DW9719 I2C ID-table regression.
