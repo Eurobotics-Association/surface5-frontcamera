@@ -70,35 +70,34 @@ This verifies the upstream DW9719 restoration on the target generic kernel.
 It does **not** yet verify image quality, frame motion, PipeWire/application
 use, or the IPA-tuning layer. No personal frame data is retained in Git.
 
-### Post-test state drift
+### Follow-up execution limitation
 
-A later read-only snapshot found the VCM still bound and camera modules loaded,
-but `/dev/media*` and `/dev/video*` absent; `cam -l` again reported no cameras.
-`cam` specifically warned that `/dev/media0` and `/dev/media1` should exist
-but do not. No module or kernel action was taken during that inspection. This
-conflicts with the successful live-test graph and is an unresolved
-reproducibility/state issue, not a retraction of the observed success. A
-controlled reprobe and fresh statistics capture are required before declaring
-robust operation.
+The later follow-up commands ran in the agent's restricted mount namespace,
+which overlays `/dev` with a private tmpfs. They can inspect the registered
+sysfs endpoints but cannot access the host's `/dev/media*` or `/dev/video*`
+nodes, so an empty `cam -l` result there is not evidence of a host graph
+regression. The registered sysfs endpoints included all IPU3 video devices,
+OV5693 as `v4l-subdev8`, and DW9719 as `v4l-subdev9`. Run further capture and
+desktop validation from the normal host user session, not that restricted
+namespace.
 
 ### Portable enumeration-test correction
 
 `tests/enumeration.sh` had falsely reported a missing front camera in a
 successful test environment solely because its `rg` command was unavailable.
 It now uses standard `grep -qiE`; the direct `grep` match against `Internal
-front camera` passes without `rg`. A rerun at the later drift snapshot correctly
-fails for the actual missing media nodes and empty `cam -l` result, rather than
-for a missing text-search dependency. The supporting collection/build scripts
-also now use `grep` instead of an unnecessary `rg` dependency.
+front camera` passes without `rg`. The supporting collection/build scripts also
+now use `grep` instead of an unnecessary `rg` dependency. The corrected full
+enumeration test must be rerun from the normal host user session; the restricted
+agent namespace cannot access the host device nodes.
 
 ### Desktop-path inventory (not a usability claim)
 
 The target packages include `pipewire-libcamera`, `xdg-desktop-portal`,
-GStreamer `libcamerasrc`, and Cheese. During the later missing-media-node
-snapshot, PipeWire had no camera/libcamera/video node and `cam -l` was empty,
-so no PipeWire, portal, browser, or desktop-application result is recorded.
-Once the graph is restored, test the installed GStreamer path first, then
-PipeWire/portal and a graphical application.
+GStreamer `libcamerasrc`, and Cheese. No PipeWire, portal, browser, or
+desktop-application result is recorded yet. Test the installed GStreamer path
+first, then PipeWire/portal and a graphical application from the normal host
+session where camera nodes are accessible.
 
 ## Historical controlled live-test procedure
 

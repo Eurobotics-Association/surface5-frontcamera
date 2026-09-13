@@ -90,5 +90,6 @@ PipeWire or application success merely because the packages are installed.
 On the target system `pipewire-libcamera`, `xdg-desktop-portal`, the
 GStreamer libcamera plugin, and Cheese are installed. That only establishes the
 available desktop path. A post-live-test snapshot has no PipeWire camera nodes
-because the underlying media device nodes have disappeared; no desktop test is
-valid until the kernel graph is present again.
+in the restricted agent namespace because that namespace overlays `/dev` with
+a private tmpfs. It cannot judge the host pipeline. Run desktop validation from
+the normal host user session with the verified camera graph available.

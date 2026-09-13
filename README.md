@@ -31,8 +31,10 @@ initialization/stale frame or another behavior. IPU3 tuning and ordinary
 PipeWire/desktop application use also remain separate validation layers.
 
 A subsequent read-only snapshot found the VCM still bound but no media/video
-nodes. That graph-persistence discrepancy is documented as an open
-reproducibility issue, not hidden by the successful initial test. See
+nodes in the restricted agent execution namespace. That namespace overlays
+`/dev` with a private tmpfs and cannot be used to judge the host camera graph;
+the verified live result remains the relevant machine evidence. Follow-up
+capture and desktop tests must run from the normal host user session. See
 [docs/changes.md](docs/changes.md).
 
 ## Repository map
