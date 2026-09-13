@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-only
 # Exercise repeated fresh libcamera start/stop cycles without retaining frames.
 set -u -o pipefail
 

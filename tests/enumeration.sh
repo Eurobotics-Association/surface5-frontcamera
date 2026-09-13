@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-only
 # Check that the kernel graph and libcamera enumerate the SP5 front camera.
 set -u -o pipefail
 

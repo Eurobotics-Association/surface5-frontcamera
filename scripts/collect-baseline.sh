@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-only
 # Collect a sanitised, non-privileged snapshot of the Surface camera stack.
 set -u -o pipefail
 

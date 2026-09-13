@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-only
 # Capture and sanity-check a short libcamera front-camera sequence.
 set -u -o pipefail
 

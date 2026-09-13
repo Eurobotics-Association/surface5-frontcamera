@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-only
 # Build, but never install, the patched DW9719 external module.
 set -euo pipefail
 

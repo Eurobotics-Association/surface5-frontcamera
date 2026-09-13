@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-2.0-only
 # Privileged helper: install an already inspected DW9719 module, but do not load it.
 set -euo pipefail
 

@@ -65,3 +65,20 @@ use `--keep` only when inspecting a local, private capture.
 No installer in this repository performs privileged actions. Kernel changes,
 module replacement, configuration changes, and reboots are always described
 with verification and rollback before execution.
+
+## Maintenance and community feedback
+
+The current per-kernel install helper is only for the first controlled live
+test. A final installer will inspect a target kernel's native `dw9719` module
+and skip itself when the official fix is present, so it cannot mask a fixed
+Ubuntu kernel. See [maintenance.md](docs/maintenance.md).
+
+Verified findings will be prepared for the existing linux-surface and Ubuntu
+bug discussions, but are never posted under an operator identity without
+approval. See [community-report.md](docs/community-report.md).
+
+## License
+
+This project is GPL-2.0-only; the full text is in [COPYING](COPYING). The
+vendored kernel-derived DW9719 driver preserves its upstream `GPL-2.0` SPDX
+identifier and copyright notice. See [licensing.md](docs/licensing.md).
