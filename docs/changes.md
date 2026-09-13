@@ -173,3 +173,13 @@ Changing OV5693 frames and repeated start/stop are verified. Browser/WebRTC
 access is the remaining primary target: diagnose PipeWire libcamera exposure,
 WirePlumber, portal, browser packaging, and site permissions without changing
 the proven kernel workaround or camera drivers.
+
+### Verified WirePlumber/portal recovery
+
+At initial session startup WirePlumber received permission denied opening
+`/dev/media0` and `/dev/media1`, skipped libcamera discovery, and did not later
+recover when normal logind ACLs granted `aev` read/write access. After
+`systemctl --user restart wireplumber`, it registered both `\_SB_.PCI0.I2C3.CAMR`
+and `\_SB_.PCI0.I2C2.CAMF`; PipeWire gained both libcamera devices/sources,
+the front source became default, and portal `IsCameraPresent` changed false to
+true. This is verified stale WirePlumber state after startup-time ACL failure.

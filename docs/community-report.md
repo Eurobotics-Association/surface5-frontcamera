@@ -2,9 +2,9 @@
 
 ## Status
 
-**Not ready to post.** DW9719 repair and changing image data are verified. The
-repeated frame is characterized as a black startup frame, but desktop/PipeWire
-validation and visual review remain before posting.
+**Not ready to post.** DW9719 repair, real frames, Cheese, and WirePlumber
+recovery are verified. Browser retest and login-time persistence remain before
+posting.
 
 ## Existing discussions to update after verification
 

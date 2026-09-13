@@ -26,8 +26,11 @@ No kernel switch or reboot was required.
 
 This is not yet a claim that the camera is fully solved. The recurring
 `frame-000001` is now identified as an all-zero startup frame, not frozen
-output; subsequent frames vary normally. IPU3 tuning and ordinary
-PipeWire/desktop application use remain separate validation layers.
+output; subsequent frames vary normally. Cheese displays usable live front
+video after manual selection. WirePlumber initially skipped media devices after
+permission-denied discovery, but a user-service restart now exposes both
+libcamera sources and makes the Camera portal present. Brave retesting and
+automatic login-time recovery remain separate work.
 
 A subsequent read-only snapshot found the VCM still bound but no media/video
 nodes in the restricted agent execution namespace. That namespace overlays
