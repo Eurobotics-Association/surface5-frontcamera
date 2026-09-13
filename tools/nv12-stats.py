@@ -10,6 +10,7 @@ successive-frame repeats without non-standard Python dependencies.
 import argparse
 import math
 import os
+import re
 import sys
 
 
@@ -61,6 +62,12 @@ def compare(previous: bytes, current: bytes) -> tuple[bool, float, float]:
     )
 
 
+def frame_sequence(path: str) -> str | None:
+    """Return the final numeric component from a libcamera frame filename."""
+    match = re.search(r"-(\d+)(?:\.[^.]+)?$", os.path.basename(path))
+    return match.group(1) if match else None
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--width", type=int, required=True)
@@ -84,10 +91,7 @@ def main() -> int:
             return 2
         if stats["black"] == "yes" or stats["uniform"] == "yes":
             suspicious += 1
-        startup_black = (
-            stats["black"] == "yes"
-            and os.path.basename(path).startswith("frame-000001")
-        )
+        startup_black = stats["black"] == "yes" and frame_sequence(path) == "000001"
         if startup_black:
             canonical_startup_black += 1
         if previous is None:

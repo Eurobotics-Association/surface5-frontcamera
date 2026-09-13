@@ -162,8 +162,14 @@ The test dynamically binds a VCM to the existing camera stack. A failed graph
 completion may require the rollback reboot. The procedure must not be run while
 a camera application is active; it must never use forced module removal.
 
-## Pending results
+## Desktop application evidence and remaining work
 
-Pixel-level validity, repeated-first-frame characterization, graph persistence,
-and normal desktop camera-path validation remain outstanding. Do not mark the
-front camera fully fixed until those checks pass.
+Cheese is verified to display usable live video from `Internal front camera`
+when the operator selects it manually. Cheese initially chooses the rear
+camera, whose image is currently unusable; this is application ordering, not a
+reason to disable the rear camera. Its exact transport path is not yet claimed.
+
+Changing OV5693 frames and repeated start/stop are verified. Browser/WebRTC
+access is the remaining primary target: diagnose PipeWire libcamera exposure,
+WirePlumber, portal, browser packaging, and site permissions without changing
+the proven kernel workaround or camera drivers.

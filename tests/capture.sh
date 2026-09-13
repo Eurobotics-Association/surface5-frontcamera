@@ -64,7 +64,10 @@ printf 'requested_stream=role=viewfinder,width=%s,height=%s,pixelformat=NV12\nva
 sha256sum "${output_frames[@]}" | tee "$work/hashes.txt"
 unique=$(awk '{print $1}' "$work/hashes.txt" | sort -u | wc -l)
 first_hash=$(awk 'NR == 1 { print $1 }' "$work/hashes.txt")
-startup_hash=$(awk '/frame-000001(\.|$)/ { print $1; exit }' "$work/hashes.txt")
+startup_hash=$(while read -r hash path; do
+    name=${path##*/}; sequence=${name##*-}; sequence=${sequence%%.*}
+    [ "$sequence" = '000001' ] && { printf '%s\n' "$hash"; break; }
+done <"$work/hashes.txt")
 printf 'first_frame_sha256=%s\n' "$first_hash"
 [ -z "$startup_hash" ] || printf 'startup_frame_000001_sha256=%s\n' "$startup_hash"
 [ "$unique" -ge 2 ] || [ "$frames" -eq 1 ] || { echo "error: every captured frame has the same SHA-256; probable frozen output; artifacts: $work" >&2; keep=1; exit 1; }
@@ -80,7 +83,7 @@ if [ -n "$visual_output" ]; then
     for index in 0 1 2 $((count / 2)) $((count - 1)); do
         [ "$index" -lt "$count" ] || continue; [ -z "${selected[$index]:-}" ] || continue; selected[$index]=1
         frame="${output_frames[$index]}"; stem=$(basename "$frame"); stem=${stem%.*}; jpeg="$visual_output/$stem.jpg"
-        [ "$index" -ne 1 ] || jpeg="$visual_output/$stem-BLACK-STARTUP.jpg"
+        sequence=${stem##*-}; [ "$sequence" != '000001' ] || jpeg="$visual_output/$stem-BLACK-STARTUP.jpg"
         [ ! -e "$jpeg" ] || { echo "error: refusing to overwrite visual result: $jpeg" >&2; keep=1; exit 1; }
         if [ "$jpeg_converter" = ffmpeg ]; then
             ffmpeg -hide_banner -loglevel error -f rawvideo -pixel_format nv12 -video_size "${width}x${height}" -i "$frame" -frames:v 1 -q:v 2 "$jpeg"

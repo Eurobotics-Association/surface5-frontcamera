@@ -4,7 +4,6 @@
 set -u -o pipefail
 
 project_root=$(cd "$(dirname "$0")/.." && pwd)
-front_id='_SB_.PCI0.I2C2.CAMF'
 if [ "${1:-}" = '-h' ] || [ "${1:-}" = '--help' ]; then
     echo 'Usage: host-validation.sh'
     echo 'Run only from the normal Zorin desktop host session; it writes private results below ~/Pictures.'
@@ -17,6 +16,10 @@ umask 077
 mkdir -p "$result_root" || { echo "error: cannot create private host result directory: $result_root" >&2; exit 2; }
 summary="$result_root/summary.txt"
 failures=0
+
+cam -l >"$result_root/cam-list-before-validation.txt" 2>&1 || true
+front_id=$(sed -n '/Internal front camera/ { s/.*(\(.*\)).*/\1/p; q; }' "$result_root/cam-list-before-validation.txt")
+[ -n "$front_id" ] || { echo 'error: could not parse the exact Internal front camera ID from cam -l' >&2; cat "$result_root/cam-list-before-validation.txt" >&2; exit 1; }
 
 note() { printf '%s\n' "$*" | tee -a "$summary"; }
 run_step() {

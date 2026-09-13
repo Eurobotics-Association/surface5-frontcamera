@@ -112,3 +112,11 @@ available desktop path. A post-live-test snapshot has no PipeWire camera nodes
 in the restricted agent namespace because that namespace overlays `/dev` with
 a private tmpfs. It cannot judge the host pipeline. Run desktop validation from
 the normal host user session with the verified camera graph available.
+
+## Browser/WebRTC diagnostic
+
+Run `./tests/browser-integration-diagnostics.sh` only in the normal desktop
+host session. It is read-only and retains PipeWire, WirePlumber, portal,
+package, browser-packaging, and filtered-log evidence below `~/Pictures/`.
+Before testing webcamtests.com, ensure its browser camera permission is
+**Allow**; do not erase browser settings or profiles.
