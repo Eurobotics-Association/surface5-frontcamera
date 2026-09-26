@@ -134,7 +134,10 @@ enumeration after permission, track label/settings/capabilities, and actual
 video dimensions after playback. It also samples four downscaled video frames
 in memory and reports luminance extrema, mean, and whether pixels changed; an
 `*_FRAME_PIXELS` result with `allBlack: true` is a failure even if the browser
-reports a live track and non-zero dimensions. It stores no image data. When a post-permission label includes
+reports a live track and non-zero dimensions. It stores no image data. Use
+**Run front-only test** after reloading the page to test the front camera
+without first opening the rear source; the default-then-front control is kept
+to expose reconfiguration failures. When a post-permission label includes
 `front`, it makes a second, exact-device request and reports that stream
 separately. A timeout is recorded distinctly as
 `ENUMERATE_BEFORE_TIMEOUT`, `GETUSERMEDIA_TIMEOUT`, or

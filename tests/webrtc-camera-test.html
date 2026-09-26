@@ -16,7 +16,8 @@
 <body>
   <h1>WebRTC camera diagnostic</h1>
   <p>This local page tests each browser camera API step independently. It records only textual API results to the private result directory created by the shell helper; it never captures or uploads frames.</p>
-  <button id="run" type="button">Run fresh test</button>
+  <button id="run" type="button">Run default-then-front test</button>
+  <button id="run-front" type="button">Run front-only test</button>
   <video id="preview" autoplay muted playsinline></video>
   <canvas id="analysis" hidden></canvas>
   <pre id="output" aria-live="polite">Waiting to run.</pre>
@@ -27,6 +28,7 @@
     const video = document.querySelector('#preview');
     const analysis = document.querySelector('#analysis');
     const runButton = document.querySelector('#run');
+    const frontButton = document.querySelector('#run-front');
     let stream;
 
     function compact(value) {
@@ -62,6 +64,14 @@
     }
     function deviceSummary(devices) {
       return devices.map(({ kind, label, deviceId, groupId }) => ({ kind, label, deviceId: deviceId ? 'present' : '', groupId: groupId ? 'present' : '' }));
+    }
+    async function stopCurrentStream() {
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      stream = undefined;
+      video.srcObject = null;
+      // PipeWire/libcamera source teardown is asynchronous. Do not turn a
+      // controlled camera switch into a concurrent stream reconfiguration.
+      await new Promise(resolve => setTimeout(resolve, 750));
     }
     function waitForPlayback() {
       return new Promise((resolve, reject) => {
@@ -112,17 +122,33 @@
       await inspectFrames(step);
       return track?.label || '';
     }
-    async function run() {
+    async function run(mode) {
       runButton.disabled = true;
+      frontButton.disabled = true;
       output.replaceChildren();
-      if (stream) stream.getTracks().forEach(track => track.stop());
-      video.srcObject = null;
-      render('ok', 'TEST_START', { secureContext: window.isSecureContext, origin: location.origin, timeoutMs });
+      await stopCurrentStream();
+      render('ok', 'TEST_START', { secureContext: window.isSecureContext, origin: location.origin, timeoutMs, mode });
       const mediaDevices = navigator.mediaDevices;
       render(mediaDevices ? 'ok' : 'error', 'MEDIADEVICES', { present: Boolean(mediaDevices), enumerateDevices: Boolean(mediaDevices?.enumerateDevices), getUserMedia: Boolean(mediaDevices?.getUserMedia) });
-      if (!mediaDevices?.enumerateDevices || !mediaDevices?.getUserMedia) { runButton.disabled = false; return; }
+      if (!mediaDevices?.enumerateDevices || !mediaDevices?.getUserMedia) { runButton.disabled = false; frontButton.disabled = false; return; }
       const before = await within('ENUMERATE_BEFORE', mediaDevices.enumerateDevices(), deviceSummary);
       if (before) render('ok', 'ENUMERATE_BEFORE_VIDEOINPUT_COUNT', { count: before.filter(device => device.kind === 'videoinput').length });
+      const frontBefore = before?.find(device => device.kind === 'videoinput' && /front/i.test(device.label));
+      if (mode === 'front-only') {
+        if (!frontBefore?.deviceId) {
+          render('error', 'FRONT_CAMERA_NOT_AVAILABLE_BEFORE_PERMISSION');
+        } else {
+          render('ok', 'FRONT_CAMERA_SELECTED', { label: frontBefore.label, phase: 'before-permission' });
+          const frontStream = await within('GETUSERMEDIA_FRONT_ONLY', mediaDevices.getUserMedia({ video: { deviceId: { exact: frontBefore.deviceId } }, audio: false }));
+          if (frontStream) await showStream('FRONT_ONLY', frontStream);
+        }
+        const afterFrontOnly = await within('ENUMERATE_AFTER', mediaDevices.enumerateDevices(), deviceSummary);
+        if (afterFrontOnly) render('ok', 'ENUMERATE_AFTER_VIDEOINPUT_COUNT', { count: afterFrontOnly.filter(device => device.kind === 'videoinput').length });
+        render('ok', 'TEST_COMPLETE');
+        runButton.disabled = false;
+        frontButton.disabled = false;
+        return;
+      }
       stream = await within('GETUSERMEDIA', mediaDevices.getUserMedia({ video: true, audio: false }));
       const defaultLabel = stream ? await showStream('DEFAULT', stream) : '';
       const after = await within('ENUMERATE_AFTER', mediaDevices.enumerateDevices(), deviceSummary);
@@ -132,7 +158,7 @@
         render('ok', 'FRONT_CAMERA_ALREADY_ACTIVE', { label: defaultLabel });
       } else if (front?.deviceId) {
         render('ok', 'FRONT_CAMERA_SELECTED', { label: front.label });
-        stream?.getTracks().forEach(track => track.stop());
+        await stopCurrentStream();
         const frontStream = await within('GETUSERMEDIA_FRONT', mediaDevices.getUserMedia({ video: { deviceId: { exact: front.deviceId } }, audio: false }));
         if (frontStream) await showStream('FRONT', frontStream);
       } else {
@@ -140,9 +166,10 @@
       }
       render('ok', 'TEST_COMPLETE');
       runButton.disabled = false;
+      frontButton.disabled = false;
     }
-    runButton.addEventListener('click', run);
-    void run();
+    runButton.addEventListener('click', () => void run('default-then-front'));
+    frontButton.addEventListener('click', () => void run('front-only'));
   </script>
 </body>
 </html>
