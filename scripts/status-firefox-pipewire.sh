@@ -20,7 +20,7 @@ else
     echo 'DEPLOYMENT_EXPECTED=missing-version-file'
 fi
 if [ -f "$manifest" ]; then
-    sed -n -e 's/^DEPLOYMENT_PRODUCT=/DEPLOYMENT_PRODUCT=/' -e 's/^DEPLOYMENT_VERSION=/DEPLOYMENT_VERSION=/' -e 's/^DEPLOYMENT_REVISION=/DEPLOYMENT_REVISION=/' -e 's/^DEPLOYMENT_INSTALLED_AT=/DEPLOYMENT_INSTALLED_AT=/' "$manifest"
+    grep -E '^DEPLOYMENT_(PRODUCT|VERSION|REVISION|INSTALLED_AT)=' "$manifest" || true
 else
     echo "DEPLOYMENT_RECORD=missing $manifest"
 fi
