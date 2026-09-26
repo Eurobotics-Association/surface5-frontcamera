@@ -18,12 +18,14 @@
   <p>This local page tests each browser camera API step independently. It records only textual API results to the private result directory created by the shell helper; it never captures or uploads frames.</p>
   <button id="run" type="button">Run fresh test</button>
   <video id="preview" autoplay muted playsinline></video>
+  <canvas id="analysis" hidden></canvas>
   <pre id="output" aria-live="polite">Waiting to run.</pre>
   <script>
     'use strict';
     const timeoutMs = 12_000;
     const output = document.querySelector('#output');
     const video = document.querySelector('#preview');
+    const analysis = document.querySelector('#analysis');
     const runButton = document.querySelector('#run');
     let stream;
 
@@ -68,6 +70,38 @@
         video.addEventListener('error', () => reject(video.error || new Error('video element error')), { once: true });
       });
     }
+    async function inspectFrames(step) {
+      const context = analysis.getContext('2d', { willReadFrequently: true });
+      const samples = [];
+      let previousChecksum;
+      for (let sample = 0; sample < 4; sample += 1) {
+        await new Promise(resolve => setTimeout(resolve, 250));
+        const width = Math.min(64, video.videoWidth);
+        const height = Math.min(36, video.videoHeight);
+        if (!width || !height) continue;
+        analysis.width = width;
+        analysis.height = height;
+        context.drawImage(video, 0, 0, width, height);
+        const pixels = context.getImageData(0, 0, width, height).data;
+        let minimum = 255;
+        let maximum = 0;
+        let total = 0;
+        let checksum = 0;
+        for (let index = 0; index < pixels.length; index += 4) {
+          const luma = Math.round((54 * pixels[index] + 183 * pixels[index + 1] + 19 * pixels[index + 2]) / 256);
+          minimum = Math.min(minimum, luma);
+          maximum = Math.max(maximum, luma);
+          total += luma;
+          checksum = (checksum + luma * ((index / 4) + 1)) >>> 0;
+        }
+        samples.push({ minimum, maximum, mean: Math.round((total / (pixels.length / 4)) * 100) / 100, changed: previousChecksum === undefined ? null : checksum !== previousChecksum });
+        previousChecksum = checksum;
+      }
+      const allBlack = samples.length > 0 && samples.every(sample => sample.maximum === 0);
+      const changedFrames = samples.filter(sample => sample.changed === true).length;
+      render(allBlack ? 'error' : 'ok', `${step}_FRAME_PIXELS`, { samples, allBlack, changedFrames, note: 'In-memory statistics only; no image data is stored or uploaded.' });
+      return { allBlack, changedFrames };
+    }
     async function showStream(step, newStream) {
       stream = newStream;
       const track = stream.getVideoTracks()[0];
@@ -75,6 +109,7 @@
       video.srcObject = stream;
       await within(`${step}_VIDEO_PLAYBACK`, Promise.resolve(video.play()).then(waitForPlayback));
       render(video.videoWidth && video.videoHeight ? 'ok' : 'error', `${step}_VIDEO_DIMENSIONS`, { videoWidth: video.videoWidth, videoHeight: video.videoHeight, readyState: video.readyState });
+      await inspectFrames(step);
       return track?.label || '';
     }
     async function run() {
