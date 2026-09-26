@@ -245,6 +245,14 @@ then creates the isolated profile. It has paired status, launch, and uninstall
 commands. Brave remains outside supported scope because its PipeWire backend
 does not complete device enumeration on this host.
 
+The deployed launcher was then tested end to end, using the managed profile
+rather than a temporary profile. It completed `getUserMedia`, reported a live
+`Built-in Front Camera` track, and displayed 640x480 video. A subsequent
+browser start selected the rear camera by default but completed the diagnostic's
+exact front-device request and again displayed live 640x480 front video. The
+managed status check simultaneously reported the enabled recovery unit, active
+user services, default front source, and true Camera portal property.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for
