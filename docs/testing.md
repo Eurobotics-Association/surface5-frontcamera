@@ -149,6 +149,10 @@ test directory; it does not retain frames or alter browser profiles. Each run
 also stops its browser stream before reporting `TEST_COMPLETE`, so it does not
 leave the camera held for a following control.
 
+**Run permission-then-front HD test** requests the exact 1280x720 front mode.
+It is an investigation control, not a browser workaround: it determines
+whether Firefox can consume the currently known-good native/PipeWire mode.
+
 ## System Firefox PipeWire deployment — experimental
 
 The experimental path uses the system `firefox` executable, never a portable

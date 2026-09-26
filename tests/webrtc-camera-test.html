@@ -18,6 +18,7 @@
   <p>This local page tests each browser camera API step independently. It records only textual API results to the private result directory created by the shell helper; it never captures or uploads frames.</p>
   <button id="run" type="button">Run default-then-front test</button>
   <button id="run-front" type="button">Run permission-then-front test</button>
+  <button id="run-front-hd" type="button">Run permission-then-front HD test</button>
   <video id="preview" autoplay muted playsinline></video>
   <canvas id="analysis" hidden></canvas>
   <pre id="output" aria-live="polite">Waiting to run.</pre>
@@ -29,6 +30,7 @@
     const analysis = document.querySelector('#analysis');
     const runButton = document.querySelector('#run');
     const frontButton = document.querySelector('#run-front');
+    const frontHdButton = document.querySelector('#run-front-hd');
     let stream;
 
     function compact(value) {
@@ -125,16 +127,17 @@
     async function run(mode) {
       runButton.disabled = true;
       frontButton.disabled = true;
+      frontHdButton.disabled = true;
       output.replaceChildren();
       await stopCurrentStream();
       render('ok', 'TEST_START', { secureContext: window.isSecureContext, origin: location.origin, timeoutMs, mode });
       const mediaDevices = navigator.mediaDevices;
       render(mediaDevices ? 'ok' : 'error', 'MEDIADEVICES', { present: Boolean(mediaDevices), enumerateDevices: Boolean(mediaDevices?.enumerateDevices), getUserMedia: Boolean(mediaDevices?.getUserMedia) });
-      if (!mediaDevices?.enumerateDevices || !mediaDevices?.getUserMedia) { runButton.disabled = false; frontButton.disabled = false; return; }
+      if (!mediaDevices?.enumerateDevices || !mediaDevices?.getUserMedia) { runButton.disabled = false; frontButton.disabled = false; frontHdButton.disabled = false; return; }
       const before = await within('ENUMERATE_BEFORE', mediaDevices.enumerateDevices(), deviceSummary);
       if (before) render('ok', 'ENUMERATE_BEFORE_VIDEOINPUT_COUNT', { count: before.filter(device => device.kind === 'videoinput').length });
       let front = before?.find(device => device.kind === 'videoinput' && /front/i.test(device.label));
-      if (mode === 'permission-then-front') {
+      if (mode === 'permission-then-front' || mode === 'permission-then-front-hd') {
         if (!front?.deviceId) {
           render('ok', 'FRONT_LABEL_HIDDEN_BEFORE_PERMISSION', { note: 'Browser privacy behavior: obtaining permission is required before selecting a labeled physical camera.' });
           const permissionStream = await within('GETUSERMEDIA_PERMISSION_PROBE', mediaDevices.getUserMedia({ video: true, audio: false }));
@@ -148,9 +151,14 @@
         if (!front?.deviceId) {
           render('error', 'FRONT_CAMERA_NOT_AVAILABLE_AFTER_PERMISSION');
         } else {
-          render('ok', 'FRONT_CAMERA_SELECTED', { label: front.label, phase: 'after-permission' });
-          const frontStream = await within('GETUSERMEDIA_FRONT', mediaDevices.getUserMedia({ video: { deviceId: { exact: front.deviceId } }, audio: false }));
-          if (frontStream) await showStream('FRONT', frontStream);
+          const exactHd = mode === 'permission-then-front-hd';
+          const step = exactHd ? 'FRONT_HD' : 'FRONT';
+          const video = exactHd
+            ? { deviceId: { exact: front.deviceId }, width: { exact: 1280 }, height: { exact: 720 } }
+            : { deviceId: { exact: front.deviceId } };
+          render('ok', 'FRONT_CAMERA_SELECTED', { label: front.label, phase: 'after-permission', requested: exactHd ? '1280x720' : 'browser-default' });
+          const frontStream = await within(`GETUSERMEDIA_${step}`, mediaDevices.getUserMedia({ video, audio: false }));
+          if (frontStream) await showStream(step, frontStream);
         }
         const afterFront = await within('ENUMERATE_AFTER', mediaDevices.enumerateDevices(), deviceSummary);
         if (afterFront) render('ok', 'ENUMERATE_AFTER_VIDEOINPUT_COUNT', { count: afterFront.filter(device => device.kind === 'videoinput').length });
@@ -160,6 +168,7 @@
         render('ok', 'TEST_COMPLETE');
         runButton.disabled = false;
         frontButton.disabled = false;
+        frontHdButton.disabled = false;
         return;
       }
       stream = await within('GETUSERMEDIA', mediaDevices.getUserMedia({ video: true, audio: false }));
@@ -183,9 +192,11 @@
       render('ok', 'TEST_COMPLETE');
       runButton.disabled = false;
       frontButton.disabled = false;
+      frontHdButton.disabled = false;
     }
     runButton.addEventListener('click', () => void run('default-then-front'));
     frontButton.addEventListener('click', () => void run('permission-then-front'));
+    frontHdButton.addEventListener('click', () => void run('permission-then-front-hd'));
   </script>
 </body>
 </html>
