@@ -222,6 +222,12 @@ This proves a practical Firefox/PipeWire workaround and isolates the remaining
 Brave failure to Chromium's PipeWire camera backend on this host, not the
 kernel, libcamera, WirePlumber source, or portal.
 
+The disposable portable-Firefox profile used for this control was removed from
+the host and is no longer shipped as a solution. It did not meet the project's
+deployment standard. A Flatpak or other browser path must be validated and
+then delivered through a complete repository installer/status/uninstall
+workflow before it is presented to users.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for

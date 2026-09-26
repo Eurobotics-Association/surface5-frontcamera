@@ -77,11 +77,17 @@ them by default; use `--keep` only when inspecting a local, private capture.
 and records textual browser API events under the same private test directory.
 It neither records camera frames nor changes a browser profile.
 
-Firefox has a verified PipeWire camera path when launched with the isolated
-portable profile supplied by `./scripts/launch-firefox-pipewire.sh`. Its
-rollback is `./scripts/uninstall-firefox-pipewire-profile.sh --purge-profile`.
-The normal Brave V4L2 path sees no usable camera, while its experimental
-PipeWire path currently times out during enumeration.
+## Browser integration status
+
+Browser support is **not yet deployed as an end-user installer**. On the
+reference host, normal Brave sees no usable camera and its experimental
+PipeWire-camera backend times out during enumeration. A disposable Firefox
+PipeWire experiment proved that the desktop camera graph can supply live front
+video, but it is retained only as evidence, not as a supported deployment.
+
+The next supported browser path must be delivered from this repository with a
+versioned install, status, verification, and uninstall workflow. Do not apply
+manual browser preferences or profile edits as a workaround.
 
 After the current kernel has passed the reviewed controlled test, the guarded
 maintenance commands are:
