@@ -33,6 +33,10 @@ done
 for plugin in pipewiresrc v4l2sink videoconvert; do
     gst-inspect-1.0 "$plugin" >/dev/null 2>&1 || { echo "error: required GStreamer element is missing: $plugin" >&2; exit 1; }
 done
+if [ ! -f /etc/modprobe.d/surface5-frontcamera-v4l2loopback.conf ] || [ ! -f /etc/modules-load.d/surface5-frontcamera-v4l2loopback.conf ]; then
+    echo 'Preparing the native V4L2 loopback policy; sudo may request your password.'
+    "$root/scripts/install-brave-v4l2loopback.sh"
+fi
 node=$(v4l2-ctl --device=/dev/video20 --all 2>&1 || true)
 grep -Fq 'Card type        : Surface5_Front_Camera_HD' <<<"$node" || { echo 'error: /dev/video20 is not prepared; first run sudo ./scripts/install-brave-v4l2loopback.sh' >&2; exit 1; }
 wpctl status -n | grep -Fq 'libcamera_input.__SB_.PCI0.I2C2.CAMF' || { echo 'error: physical front PipeWire source is absent' >&2; exit 1; }

@@ -20,7 +20,6 @@ case "${1:-}" in
     *) usage >&2; exit 2 ;;
 esac
 [ "$#" -le 1 ] || { usage >&2; exit 2; }
-[ "$(id -u)" -eq 0 ] || { echo 'error: run this native-module installer with sudo' >&2; exit 2; }
 
 status() {
     printf 'BRAVE_V4L2_EXPECTED=%s %s\n' "$DEPLOYMENT_PRODUCT" "$DEPLOYMENT_VERSION"
@@ -31,6 +30,13 @@ status() {
     [ -c /dev/video20 ] && udevadm info --query=property --name=/dev/video20 2>/dev/null | grep -E '^(DEVNAME|ID_V4L_PRODUCT|ID_V4L_CAPABILITIES)=' || true
 }
 [ "$mode" != status ] || { status; exit 0; }
+
+# The normal user-facing installer calls this helper when the native policy is
+# absent. Re-exec through sudo so the terminal requests a password only for a
+# state-changing install or rollback; read-only status needs no elevation.
+if [ "$(id -u)" -ne 0 ]; then
+    exec sudo -- "$0" "$@"
+fi
 
 if [ "$mode" = rollback ]; then
     if lsmod | grep -q '^v4l2loopback '; then

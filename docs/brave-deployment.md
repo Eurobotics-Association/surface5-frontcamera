@@ -8,18 +8,17 @@ profile or site settings.
 
 ## Install
 
-Run the first command once with your administrator password, then run the
-second command as the logged-in desktop user:
+Run this single command as the logged-in desktop user:
 
 ```bash
-sudo ./scripts/install-brave-v4l2loopback.sh
 ./scripts/install-brave-v4l2-camera.sh
 ```
 
-The root layer uses the `v4l2loopback` module already supplied by the current
-kernel. It refuses to install a DKMS replacement automatically. The user layer
-installs a bridge and Brave Start/Stop entries, but keeps the camera off until
-you start it.
+If the native loopback policy is missing, the installer invokes its guarded
+root helper and your terminal requests the `sudo` password. The root layer uses
+the `v4l2loopback` module already supplied by the current kernel and refuses to
+install a DKMS replacement automatically. The user layer installs a bridge and
+Brave Start/Stop entries, but keeps the camera off until you start it.
 
 ## Use
 
