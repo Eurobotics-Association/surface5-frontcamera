@@ -75,6 +75,7 @@
       video.srcObject = stream;
       await within(`${step}_VIDEO_PLAYBACK`, Promise.resolve(video.play()).then(waitForPlayback));
       render(video.videoWidth && video.videoHeight ? 'ok' : 'error', `${step}_VIDEO_DIMENSIONS`, { videoWidth: video.videoWidth, videoHeight: video.videoHeight, readyState: video.readyState });
+      return track?.label || '';
     }
     async function run() {
       runButton.disabled = true;
@@ -88,11 +89,13 @@
       const before = await within('ENUMERATE_BEFORE', mediaDevices.enumerateDevices(), deviceSummary);
       if (before) render('ok', 'ENUMERATE_BEFORE_VIDEOINPUT_COUNT', { count: before.filter(device => device.kind === 'videoinput').length });
       stream = await within('GETUSERMEDIA', mediaDevices.getUserMedia({ video: true, audio: false }));
-      if (stream) await showStream('DEFAULT', stream);
+      const defaultLabel = stream ? await showStream('DEFAULT', stream) : '';
       const after = await within('ENUMERATE_AFTER', mediaDevices.enumerateDevices(), deviceSummary);
       if (after) render('ok', 'ENUMERATE_AFTER_VIDEOINPUT_COUNT', { count: after.filter(device => device.kind === 'videoinput').length });
       const front = after?.find(device => device.kind === 'videoinput' && /front/i.test(device.label));
-      if (front?.deviceId) {
+      if (front?.deviceId && /front/i.test(defaultLabel)) {
+        render('ok', 'FRONT_CAMERA_ALREADY_ACTIVE', { label: defaultLabel });
+      } else if (front?.deviceId) {
         render('ok', 'FRONT_CAMERA_SELECTED', { label: front.label });
         stream?.getTracks().forEach(track => track.stop());
         const frontStream = await within('GETUSERMEDIA_FRONT', mediaDevices.getUserMedia({ video: { deviceId: { exact: front.deviceId } }, audio: false }));
