@@ -322,6 +322,17 @@ their versioned, executable Bash helpers directly. The corrected Start entry
 was then verified to create `surface5_frontcamera_hd`; the paired Stop entry
 was verified to remove it and release the physical camera.
 
+The initial custom entry used the Audio/Video category, so it appeared outside
+Zorin's Internet section. It now uses the standard Network category. A later
+Firefox `NotAllowedError` was traced to the GNOME Camera portal, which logged
+both a failed parent-window association and `Only the focused app is allowed to
+show a system access dialog`. Earlier occurrences predated the desktop
+launcher, so this is not evidence of a camera-bridge failure. The custom entry
+now declares Firefox's documented `StartupWMClass=firefox`, matching the
+distribution Firefox entry, so GNOME can associate the managed Firefox window
+with the launcher for portal focus checks. This requires a focused-window
+retest; no portal permissions or security policy were changed.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for

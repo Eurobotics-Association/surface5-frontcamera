@@ -48,8 +48,12 @@ so it does not hold the camera or light its LED at login.
 
 ## Use
 
-Open **Firefox — Surface5 HD Front Camera** from the desktop application menu.
-It starts the bridge, then opens the isolated Firefox profile. On a WebRTC
+Open **Firefox — Surface5 HD Front Camera** from the desktop application's
+Network/Internet category. The separate **Stop Surface5 HD Front Camera**
+entry is in Utilities.
+
+The Firefox entry starts the bridge, then opens the isolated Firefox profile.
+On a WebRTC
 site, grant Firefox's camera permission and select
 **Surface5_Front_Camera_HD**. Do not select **Built-in Front Camera** for a
 call: its normal 640x480 route is the known-black path on this reference host.
@@ -82,6 +86,14 @@ images.
 If the source does not appear, use the desktop stop entry, then run the status
 command. Do not use `chmod`, broad device ACL changes, ad-hoc Firefox
 preferences, or a manual PipeWire pipeline as a substitute for this deployment.
+
+If Firefox reports `NotAllowedError` and the user journal contains `Only the
+focused app is allowed to show a system access dialog`, the request was denied
+by the GNOME Camera portal before it reached the virtual source. Ensure the
+Firefox window is focused, reload the page, and start its camera test from that
+focused window. The launcher declares Firefox's standard `StartupWMClass` so
+GNOME associates the window with the launcher. Do not bypass the portal or add
+permanent permission-store entries as a workaround.
 
 ## Roll back
 

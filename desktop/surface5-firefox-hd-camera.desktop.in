@@ -7,5 +7,6 @@ Exec="@LAUNCHER@"
 TryExec=@LAUNCHER@
 Icon=firefox
 Terminal=false
-Categories=AudioVideo;
+Categories=Network;
+StartupWMClass=firefox
 StartupNotify=true

@@ -21,6 +21,9 @@ test -x "$launcher"
 test -x "$stopper"
 grep -Fqx "Exec=\"$launcher\"" "$desktop_launcher"
 grep -Fqx "Exec=\"$stopper\"" "$desktop_stopper"
+grep -Fqx 'Categories=Network;' "$desktop_launcher"
+grep -Fqx 'Categories=Utility;' "$desktop_stopper"
+grep -Fqx 'StartupWMClass=firefox' "$desktop_launcher"
 if command -v desktop-file-validate >/dev/null 2>&1; then
     desktop-file-validate "$desktop_launcher" "$desktop_stopper"
 fi
