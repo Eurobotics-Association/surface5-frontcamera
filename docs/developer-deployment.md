@@ -160,3 +160,18 @@ Do not install a browser flag, preference, portal entry, or launcher until it
 passes the complete release-validation sequence above. A detected executable,
 an enabled permission toggle, a live track, an LED, or a nominal resolution is
 not enough: the evidence must prove moving image data.
+
+For Brave experiments, use the repository control harness rather than a manual
+command:
+
+```bash
+./tests/brave-disposable-webrtc.sh --close-existing
+./tests/brave-disposable-webrtc.sh --pipewire-camera --close-existing
+```
+
+Each invocation closes Brave only after the explicit `--close-existing` opt-in,
+uses a new temporary profile, starts the already-installed HD bridge, and
+removes that profile and releases the bridge when the temporary Brave window
+closes. The second command enables Chromium's experimental
+`WebRtcPipeWireCamera` feature for that one process only. It is an experiment,
+not an installation or supported configuration.
