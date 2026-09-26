@@ -33,8 +33,9 @@ now exposes both libcamera sources and makes the Camera portal present.
 Firefox WebRTC is verified on the reference Surface Pro 5 when it uses the
 repository-managed fixed-HD virtual source. The ordinary 640x480 physical
 camera path remains black on this machine, so applications must select
-`Surface5_Front_Camera_HD`, not `Built-in Front Camera`. Brave is a separate,
-unresolved browser-backend issue.
+`Surface5_Front_Camera_HD`, not `Built-in Front Camera`. Brave WebRTC is also
+verified through the separately deployed native-V4L2 fixed-HD bridge; its
+experimental Chromium PipeWire backend remains unusable.
 
 A subsequent read-only snapshot found the VCM still bound but no media/video
 nodes in the restricted agent execution namespace. That namespace overlays
@@ -50,6 +51,7 @@ capture and desktop tests must run from the normal host user session. See
 - [Upstream research and patch audit](docs/research.md)
 - [Diagnostics and test procedure](docs/testing.md)
 - [Firefox desktop deployment](docs/firefox-deployment.md)
+- [Brave desktop deployment](docs/brave-deployment.md)
 - [Developer and AI deployment guide](docs/developer-deployment.md)
 - [Change plan and results](docs/changes.md)
 - [Rollback](docs/rollback.md)
@@ -141,9 +143,10 @@ The HD bridge is deliberately not enabled at login. The Firefox desktop
 launcher starts it before opening Firefox; the Stop desktop entry releases it
 after a call and turns off its privacy LED.
 
-Brave is not supported on the reference host: normal Brave exposes no usable
-camera, and its PipeWire backend has timed out during device enumeration. The
-Firefox bridge does not claim to fix Brave.
+Brave is supported through [Brave desktop deployment](docs/brave-deployment.md):
+the native kernel loopback module and user-level fixed-HD V4L2 bridge expose
+`Surface5_Front_Camera_HD` to Brave's ordinary camera backend. Do not enable
+Chromium's experimental PipeWire camera feature; it times out on this host.
 
 After the current kernel has passed the reviewed controlled test, the guarded
 maintenance commands are:

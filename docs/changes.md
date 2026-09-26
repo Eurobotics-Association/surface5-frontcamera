@@ -395,6 +395,18 @@ stored as a Brave preference, or added to a launcher. The test harness removes
 its temporary profile and releases the bridge with `--stop`; Firefox remains
 the verified browser solution.
 
+### Brave native-V4L2 bridge result (2026-09-26)
+
+The running generic kernel already provided a signed native `v4l2loopback`
+module (`0.15.3`) in `linux-modules-7.0.0-31-generic`, so no DKMS module was
+installed. A controlled `/dev/video20` loopback feed converted the verified
+physical 1280x720 NV12 source to 1280x720 YUYV. Brave 154's ordinary backend
+then requested camera authorization, enumerated `Surface5_Front_Camera_HD`,
+and delivered a live 1280x720, 30 FPS track. The local browser diagnostic
+observed three changing non-black frame samples both for the permission probe
+and exact-device request. This is the supported Brave path; the Chromium
+PipeWire feature remains unsupported.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for

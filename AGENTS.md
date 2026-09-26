@@ -91,10 +91,11 @@ details in `docs/developer-deployment.md`.
   repeat-install no-op, launcher start, actual changing non-black 1280x720
   WebRTC frames, stop/release behavior, and scoped rollback. Preserve Firefox
   as the working control while investigating other browsers.
-- Brave work is experimental until the same moving-frame criteria pass through
-  a repository-managed installation. Use disposable profiles and reversible
-  diagnostics; do not persist flags, preferences, portal permissions, or a
-  Brave launcher merely because Brave is detected.
+- Brave support is the separately deployed native-V4L2 path only:
+  `v4l2loopback` at `/dev/video20` plus the fixed-HD user bridge. Do not enable
+  or persist Chromium's `WebRtcPipeWireCamera` feature: it timed out on the
+  reference host. Preserve the root/user installer split, native-module guard,
+  and both rollback layers; use disposable profiles for future Brave changes.
 - Never include captured images, raw frames, browser profiles, logs containing
   personal data, credentials, or host deployment traces in commits. Private
   test artifacts remain under `~/Pictures/surface5-frontcamera-tests/`.

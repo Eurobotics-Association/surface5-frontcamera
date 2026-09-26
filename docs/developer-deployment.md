@@ -183,9 +183,12 @@ Brave's ordinary V4L2 backend from Chromium's stalled PipeWire backend.
 
 On the reference host with Brave `154.1.96.59`, the normal control produced
 zero video inputs and `NotFoundError`; the `WebRtcPipeWireCamera` control
-timed out during enumeration and the permission probe. Neither control reached
-video delivery. Treat this as a documented Chromium/Brave boundary until a new
-version passes the full moving-frame validation sequence.
+timed out during enumeration and the permission probe. Neither PipeWire control
+reached video delivery. The supported Brave workaround is instead the guarded
+native `v4l2loopback` `/dev/video20` bridge. It produced an authorized,
+1280×720 / 30 FPS `Surface5_Front_Camera_HD` WebRTC track with changing,
+non-black frames. Maintain its root module-policy installer and user bridge as
+separate rollback layers; never replace it with a persistent Chromium flag.
 
 If the terminal running a temporary test is interrupted while the browser is
 still open, clean up only that recorded control with:
