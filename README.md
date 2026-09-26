@@ -89,7 +89,7 @@ currently receives all-black frames after its repeated resolution negotiation.
 The current reference host has a verified format boundary: direct libcamera
 and PipeWire produce changing front-camera pixels at 1280x720, but their
 default 640x480 mode is all black. The installer includes an experimental
-user-level fixed-HD virtual source named `Surface 5 Front Camera HD`. It is
+user-level fixed-HD virtual source named `Surface5_Front_Camera_HD`. It is
 separate from the physical camera; select it in an application only after the
 deployment validation described in `docs/testing.md` has passed.
 

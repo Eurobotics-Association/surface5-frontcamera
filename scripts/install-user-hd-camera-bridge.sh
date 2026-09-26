@@ -32,5 +32,8 @@ for _ in $(seq 1 15); do
     sleep 1
 done
 systemctl --user --no-pager --full status "$unit" || true
+systemctl --user disable --now "$unit" 2>/dev/null || true
+rm -f "$destination"
+systemctl --user daemon-reload
 echo "error: fixed-HD virtual source did not appear: $virtual_source" >&2
 exit 1

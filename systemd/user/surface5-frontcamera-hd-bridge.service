@@ -7,7 +7,7 @@ PartOf=graphical-session.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/gst-launch-1.0 -q pipewiresrc target-object=libcamera_input.__SB_.PCI0.I2C2.CAMF client-name=surface5-frontcamera-hd-bridge ! video/x-raw,format=NV12,width=1280,height=720 ! queue max-size-buffers=4 leaky=downstream ! pipewiresink mode=provide client-name=surface5-frontcamera-hd-bridge stream-properties="properties,media.class=Video/Source,media.role=Camera,node.name=surface5_frontcamera_hd,node.description=Surface 5 Front Camera HD,node.virtual=true"
+ExecStart=/usr/bin/gst-launch-1.0 -q pipewiresrc target-object=libcamera_input.__SB_.PCI0.I2C2.CAMF client-name=surface5-frontcamera-hd-bridge ! video/x-raw,format=NV12,width=1280,height=720 ! queue max-size-buffers=4 leaky=downstream ! pipewiresink mode=provide client-name=surface5-frontcamera-hd-bridge stream-properties="properties,media.class=(string)Video/Source,media.role=(string)Camera,node.name=(string)surface5_frontcamera_hd,node.description=(string)Surface5_Front_Camera_HD,node.virtual=(boolean)true"
 Restart=on-failure
 RestartSec=3
 

@@ -20,7 +20,7 @@ repository's one-shot WirePlumber recovery unit. It does not remove Firefox,
 touch a normal Firefox profile, restart PipeWire, or alter device access.
 
 It also stops and removes the user-level `surface5-frontcamera-hd-bridge`
-service and its `Surface 5 Front Camera HD` virtual source. To roll back only
+service and its `Surface5_Front_Camera_HD` virtual source. To roll back only
 that bridge while retaining the managed Firefox profile and WirePlumber
 recovery unit, use:
 

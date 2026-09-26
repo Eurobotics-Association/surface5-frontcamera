@@ -182,7 +182,7 @@ The reference OV5693/IPU3 pipeline currently produces usable changing frames
 at 1280x720 but all-black frames at its default 640x480 negotiation. The
 Firefox installer deploys a user-level GStreamer/PipeWire bridge that keeps the
 physical `libcamera_input.__SB_.PCI0.I2C2.CAMF` source at 1280x720 and exposes
-the separate virtual source `Surface 5 Front Camera HD`.
+the separate virtual source `Surface5_Front_Camera_HD`.
 
 The bridge is user-owned, has no root privileges, changes no camera ACL or
 browser profile, and has a paired status/uninstall path:
