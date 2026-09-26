@@ -2,19 +2,22 @@
 
 ## Current investigation state
 
-The current host has one user-owned session integration. It does not change a
-kernel module, device ACL, global configuration, or browser package.
+The current host may have one user-owned Firefox/session integration. It does
+not change a kernel module, device ACL, global configuration, browser package,
+or a normal Firefox profile.
 
-To remove the graphical-session WirePlumber recovery unit:
+To remove the managed Firefox PipeWire integration and graphical-session
+WirePlumber recovery unit:
 
 ```bash
 cd /home/aev/Github/surface5-frontcamera
-./scripts/uninstall-user-camera-recovery.sh
+./scripts/uninstall-firefox-pipewire.sh
 ```
 
-This disables the one-shot user unit, removes only
-`~/.config/systemd/user/surface5-wireplumber-camera-recovery.service`, and
-reloads the user manager. It does not restart PipeWire or alter device access.
+This removes only the managed profile at
+`~/.local/share/surface5-frontcamera/firefox-pipewire-profile` and the
+repository's one-shot WirePlumber recovery unit. It does not remove Firefox,
+touch a normal Firefox profile, restart PipeWire, or alter device access.
 
 ## DW9719 external-module rollback
 

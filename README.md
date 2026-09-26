@@ -77,17 +77,32 @@ them by default; use `--keep` only when inspecting a local, private capture.
 and records textual browser API events under the same private test directory.
 It neither records camera frames nor changes a browser profile.
 
-## Browser integration status
+## Firefox browser integration
 
-Browser support is **not yet deployed as an end-user installer**. On the
-reference host, normal Brave sees no usable camera and its experimental
-PipeWire-camera backend times out during enumeration. A disposable Firefox
-PipeWire experiment proved that the desktop camera graph can supply live front
-video, but it is retained only as evidence, not as a supported deployment.
+Supported scope: the verified Surface Pro 5 / Ubuntu-or-Zorin reference stack
+with a system-installed Firefox, a healthy libcamera PipeWire source, and the
+Camera portal present. This installer does not support Brave and does not
+modify a normal Firefox profile. It creates one isolated managed profile for
+Firefox PipeWire camera use and installs the narrowly scoped WirePlumber
+graphical-session recovery.
 
-The next supported browser path must be delivered from this repository with a
-versioned install, status, verification, and uninstall workflow. Do not apply
-manual browser preferences or profile edits as a workaround.
+```bash
+./scripts/install-firefox-pipewire.sh
+./scripts/status-firefox-pipewire.sh
+./scripts/launch-firefox-pipewire.sh https://fr.webcamtests.com/
+```
+
+At the site, select `Built-in Front Camera` after permission is granted. The
+installer validates Firefox and required user services, recovers the libcamera
+source, confirms the Camera portal, and fails safely if its supported hardware
+source is absent. To roll back everything it deployed:
+
+```bash
+./scripts/uninstall-firefox-pipewire.sh
+```
+
+Brave is not supported: normal Brave exposes no usable camera, and its
+experimental PipeWire backend times out during device enumeration.
 
 After the current kernel has passed the reviewed controlled test, the guarded
 maintenance commands are:

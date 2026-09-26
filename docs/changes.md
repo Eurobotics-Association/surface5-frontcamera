@@ -228,6 +228,23 @@ deployment standard. A Flatpak or other browser path must be validated and
 then delivered through a complete repository installer/status/uninstall
 workflow before it is presented to users.
 
+### System Firefox deployment control (2026-09-26)
+
+The installed distribution Firefox (`/usr/bin/firefox`, package version
+`156.0.1~build1`) was retested, not inferred from the removed portable build.
+Its default disposable profile exposed zero video inputs and returned
+`NotFoundError`. A second disposable profile containing only the managed
+PipeWire camera preference discovered both built-in cameras and produced a
+live 640x480 `Built-in Front Camera` stream through an exact-device request.
+
+The supported deployment therefore uses the system Firefox executable with a
+separate repository-managed profile, never a manual edit to an existing
+profile. The installer validates active user services, restores the known
+WirePlumber discovery state, checks the front PipeWire source and Camera portal,
+then creates the isolated profile. It has paired status, launch, and uninstall
+commands. Brave remains outside supported scope because its PipeWire backend
+does not complete device enumeration on this host.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for

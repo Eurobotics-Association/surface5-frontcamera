@@ -139,11 +139,24 @@ separately. A timeout is recorded distinctly as
 interrupted and writes only textual HTTP/event logs below the private Pictures
 test directory; it does not retain frames or alter browser profiles.
 
-The prior disposable Firefox PipeWire experiment is historical evidence only;
-its launcher and profile template are intentionally not shipped as a supported
-solution. Browser integration is deployable only when it has a repository
-installer, status check, verification procedure, and uninstall path. Do not
-apply manual browser preferences or profile edits.
+## System Firefox PipeWire deployment
+
+The supported path uses the system `firefox` executable, never a portable
+browser or a normal Firefox profile. It installs the PipeWire preference only
+in `~/.local/share/surface5-frontcamera/firefox-pipewire-profile`, enables the
+repository's user-session recovery, and verifies the front source plus Camera
+portal before reporting success.
+
+```bash
+./scripts/install-firefox-pipewire.sh
+./scripts/status-firefox-pipewire.sh
+./scripts/launch-firefox-pipewire.sh https://fr.webcamtests.com/
+```
+
+At WebcamTests, grant the Firefox prompt, select `Built-in Front Camera`, and
+click **Tester ma webcam**. The local `browser-webrtc-test.sh` remains the
+programmatic verification control. Roll back the managed profile and recovery
+unit with `./scripts/uninstall-firefox-pipewire.sh`.
 
 ## WirePlumber graphical-session recovery
 
