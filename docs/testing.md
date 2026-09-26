@@ -176,6 +176,29 @@ negotiation. The local `browser-webrtc-test.sh` is the programmatic pixel-flow
 verification control. Roll back the managed profile and recovery unit with
 `./scripts/uninstall-firefox-pipewire.sh`.
 
+## Fixed-HD virtual camera bridge
+
+The reference OV5693/IPU3 pipeline currently produces usable changing frames
+at 1280x720 but all-black frames at its default 640x480 negotiation. The
+Firefox installer deploys a user-level GStreamer/PipeWire bridge that keeps the
+physical `libcamera_input.__SB_.PCI0.I2C2.CAMF` source at 1280x720 and exposes
+the separate virtual source `Surface 5 Front Camera HD`.
+
+The bridge is user-owned, has no root privileges, changes no camera ACL or
+browser profile, and has a paired status/uninstall path:
+
+```bash
+./scripts/install-user-hd-camera-bridge.sh
+./scripts/status-user-hd-camera-bridge.sh
+./scripts/uninstall-user-hd-camera-bridge.sh
+```
+
+Use it only on the validated Surface Pro 5 reference hardware. Select the
+virtual source explicitly in the browser or conferencing application; do not
+assume that a browser will prefer it over the physical cameras. Treat it as
+experimental until installation, browser restart, and changing-pixel WebRTC
+validation all pass.
+
 ## WirePlumber graphical-session recovery
 
 The target session reproduced a WirePlumber startup race: the service started

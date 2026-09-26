@@ -86,6 +86,13 @@ graphical-session recovery. It is **not a browser-camera solution for other
 machines yet**: on the reference host, WebcamTests can open the camera but
 currently receives all-black frames after its repeated resolution negotiation.
 
+The current reference host has a verified format boundary: direct libcamera
+and PipeWire produce changing front-camera pixels at 1280x720, but their
+default 640x480 mode is all black. The installer includes an experimental
+user-level fixed-HD virtual source named `Surface 5 Front Camera HD`. It is
+separate from the physical camera; select it in an application only after the
+deployment validation described in `docs/testing.md` has passed.
+
 ```bash
 ./scripts/install-firefox-pipewire.sh
 ./scripts/status-firefox-pipewire.sh
@@ -102,6 +109,9 @@ deployed:
 ```bash
 ./scripts/uninstall-firefox-pipewire.sh
 ```
+
+This also removes the managed fixed-HD virtual source and the WirePlumber
+recovery unit; normal Firefox profiles remain untouched.
 
 Brave is not supported: normal Brave exposes no usable camera, and its
 experimental PipeWire backend times out during device enumeration.

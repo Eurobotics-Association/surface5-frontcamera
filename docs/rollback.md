@@ -19,6 +19,16 @@ This removes only the managed profile at
 repository's one-shot WirePlumber recovery unit. It does not remove Firefox,
 touch a normal Firefox profile, restart PipeWire, or alter device access.
 
+It also stops and removes the user-level `surface5-frontcamera-hd-bridge`
+service and its `Surface 5 Front Camera HD` virtual source. To roll back only
+that bridge while retaining the managed Firefox profile and WirePlumber
+recovery unit, use:
+
+```bash
+cd /home/aev/Github/surface5-frontcamera
+./scripts/uninstall-user-hd-camera-bridge.sh
+```
+
 ## DW9719 external-module rollback
 
 The only proposed system change targets `7.0.0-31-generic` and places a

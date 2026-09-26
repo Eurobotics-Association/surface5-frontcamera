@@ -21,3 +21,4 @@ gdbus call --session --dest org.freedesktop.portal.Desktop \
     --object-path /org/freedesktop/portal/desktop \
     --method org.freedesktop.DBus.Properties.Get \
     org.freedesktop.portal.Camera IsCameraPresent 2>&1 || true
+"$(cd "$(dirname "$0")" && pwd)/status-user-hd-camera-bridge.sh" || true

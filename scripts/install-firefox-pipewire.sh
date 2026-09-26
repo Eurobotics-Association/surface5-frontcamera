@@ -69,4 +69,6 @@ done
     exit 1
 }
 
+"$root/scripts/install-user-hd-camera-bridge.sh"
+
 printf 'Installed Firefox PipeWire integration. Launch with: %s/scripts/launch-firefox-pipewire.sh\n' "$root"
