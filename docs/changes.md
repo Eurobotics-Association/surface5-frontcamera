@@ -348,6 +348,18 @@ with 108,647 colours and non-zero image metrics. This validates the
 repository-installed Firefox launch path, not merely the direct diagnostic
 control.
 
+### Deployment version and rollback interface (2026-09-26)
+
+The Firefox deployment now has the versioned product identity
+`EBtx-surface5-HDCam-patch 1.0.260926`. The installer writes a user-owned,
+mode-600 trace containing the product, version, source revision where Git data
+is available, and timestamp. On subsequent runs it checks the trace and the
+managed profile, user units, launch helpers, application entries, and Desktop
+shortcuts. A fully current deployment is a no-op: it does not restart
+WirePlumber or interrupt a camera call. The installer also provides read-only
+`--status`, `--version`, and scoped `--rollback` entry points. Rollback removes
+only the tracked Firefox deployment and its trace.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for

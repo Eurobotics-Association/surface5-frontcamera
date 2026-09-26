@@ -48,6 +48,21 @@ It does not modify Firefox's normal profile, a browser package, global camera
 permissions, device ACLs, or the kernel. The HD bridge is installed inactive,
 so it does not hold the camera or light its LED at login.
 
+The installer records an auditable, user-owned deployment trace at
+`~/.local/share/surface5-frontcamera/deployment.env`. The current record is
+`EBtx-surface5-HDCam-patch 1.0.260926`; it contains the product, deployment
+version, source revision when available, and installation timestamp. A repeat
+install checks that record and all project-owned deployed components. If they
+already match, it reports `already-current` and does not restart WirePlumber,
+stop the bridge, or rewrite deployment files. If an older record has matching
+components, it adopts it by writing only the updated record. A changed or
+missing component is repaired through the normal versioned installer.
+
+```bash
+./scripts/install-firefox-pipewire.sh --version
+./scripts/install-firefox-pipewire.sh --status
+```
+
 ## Use
 
 Open **Firefox — Surface5 HD Front Camera** from the desktop application's
@@ -111,6 +126,12 @@ permanent permission-store entries as a workaround.
 ./scripts/uninstall-firefox-pipewire.sh
 ```
 
+Equivalently, use the installer’s explicit rollback interface:
+
+```bash
+./scripts/install-firefox-pipewire.sh --rollback
+```
+
 This removes only the managed profile, project-owned desktop entries/helpers,
 and project-owned user services. It leaves Firefox, unrelated Firefox profiles,
 browser packages, and camera permissions intact.
@@ -122,3 +143,8 @@ installation, status, desktop-launcher, and uninstall paths versioned together.
 Do not claim browser support for a new device, OS stack, or browser until the
 repository installation, a browser restart, actual changing-frame WebRTC
 playback, and rollback have all been verified.
+
+For a new deployment version, update `config/deployment-version.env`, preserve
+the same product identity unless a genuinely different product is introduced,
+and verify both the adoption/no-op path and the repair path. Never use the
+deployment trace as a substitute for actual WebRTC moving-frame validation.

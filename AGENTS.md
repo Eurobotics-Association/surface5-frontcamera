@@ -45,3 +45,8 @@
 - Report all detected browsers during deployment. A detected unsupported
   browser is diagnostic information, not permission to enable or claim support
   for it.
+- Every user-facing browser deployment must have a versioned product identity,
+  an inspectable user-owned deployment record, an idempotent no-op path for
+  already-current components, and a scoped rollback entry point. A version
+  record is evidence of deployment state, never evidence of camera-frame
+  correctness.

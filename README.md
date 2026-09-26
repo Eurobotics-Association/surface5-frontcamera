@@ -101,6 +101,8 @@ test and by visible 1280x720 video at WebcamTests.
 ```bash
 ./scripts/install-firefox-pipewire.sh
 ./scripts/status-firefox-pipewire.sh
+./scripts/install-firefox-pipewire.sh --version
+./scripts/install-firefox-pipewire.sh --status
 ```
 
 The installer reports Firefox and Brave when present. Firefox is the supported
@@ -125,8 +127,11 @@ installation, verification, limits, exact deployed paths, and rollback are in
 everything it deployed:
 
 ```bash
-./scripts/uninstall-firefox-pipewire.sh
+./scripts/install-firefox-pipewire.sh --rollback
 ```
+
+`--rollback` is the versioned convenience entry point for the same scoped
+rollback as `./scripts/uninstall-firefox-pipewire.sh`.
 
 This also removes the managed fixed-HD virtual source and the WirePlumber
 recovery unit; normal Firefox profiles remain untouched.

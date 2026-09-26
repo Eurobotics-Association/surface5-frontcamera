@@ -4,9 +4,26 @@
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
-profile="${XDG_DATA_HOME:-$HOME/.local/share}/surface5-frontcamera/firefox-pipewire-profile"
+data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+state_dir="$data_home/surface5-frontcamera"
+profile="$state_dir/firefox-pipewire-profile"
+version_file="$root/config/deployment-version.env"
+manifest="$state_dir/deployment.env"
 [ "${1:-}" != '--help' ] || { echo "Usage: $0"; exit 0; }
 [ "$#" -eq 0 ] || { echo 'error: no arguments accepted' >&2; exit 2; }
+
+if [ -f "$version_file" ]; then
+    # shellcheck disable=SC1090
+    . "$version_file"
+    printf 'DEPLOYMENT_EXPECTED=%s %s\n' "${DEPLOYMENT_PRODUCT:-invalid}" "${DEPLOYMENT_VERSION:-invalid}"
+else
+    echo 'DEPLOYMENT_EXPECTED=missing-version-file'
+fi
+if [ -f "$manifest" ]; then
+    sed -n -e 's/^DEPLOYMENT_PRODUCT=/DEPLOYMENT_PRODUCT=/' -e 's/^DEPLOYMENT_VERSION=/DEPLOYMENT_VERSION=/' -e 's/^DEPLOYMENT_REVISION=/DEPLOYMENT_REVISION=/' -e 's/^DEPLOYMENT_INSTALLED_AT=/DEPLOYMENT_INSTALLED_AT=/' "$manifest"
+else
+    echo "DEPLOYMENT_RECORD=missing $manifest"
+fi
 
 firefox=$(command -v firefox 2>/dev/null || true)
 if [ -n "$firefox" ]; then printf 'FIREFOX=%s\n' "$firefox"; "$firefox" --version; else echo 'FIREFOX=missing'; fi

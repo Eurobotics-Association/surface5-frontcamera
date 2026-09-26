@@ -11,8 +11,11 @@ WirePlumber recovery unit:
 
 ```bash
 cd /home/aev/Github/surface5-frontcamera
-./scripts/uninstall-firefox-pipewire.sh
+./scripts/install-firefox-pipewire.sh --rollback
 ```
+
+`./scripts/uninstall-firefox-pipewire.sh` remains the equivalent explicit
+uninstall command.
 
 This removes only the managed profile at
 `~/.local/share/surface5-frontcamera/firefox-pipewire-profile` and the
@@ -23,7 +26,9 @@ It also removes the project-owned **Firefox — Surface5 HD Front Camera** and
 **Stop Surface5 HD Front Camera** application-menu entries plus their launch
 helpers, and removes their matching Desktop shortcuts. If Firefox was started
 by the project launcher, rollback stops that project-owned transient Firefox
-service first. No normal desktop entries are changed.
+service first. It removes the project deployment trace at
+`~/.local/share/surface5-frontcamera/deployment.env`. No normal desktop entries
+are changed.
 
 It also stops and removes the user-level `surface5-frontcamera-hd-bridge`
 service and its `Surface5_Front_Camera_HD` virtual source. To roll back only
