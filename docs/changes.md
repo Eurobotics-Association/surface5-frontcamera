@@ -407,6 +407,12 @@ observed three changing non-black frame samples both for the permission probe
 and exact-device request. This is the supported Brave path; the Chromium
 PipeWire feature remains unsupported.
 
+The installed Brave launcher was then validated at WebcamTests using the
+normal Brave profile. The site received `Surface5_Front_Camera_HD` as an RGB
+1280x720 stream at 28 FPS, with 196,667 colours and a reported 20.3 MB/s data
+rate. This confirms real website delivery in addition to the local
+changing-frame test; no camera image was retained in the repository.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for
