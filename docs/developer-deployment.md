@@ -176,6 +176,12 @@ closes. The second command enables Chromium's experimental
 `WebRtcPipeWireCamera` feature for that one process only. It is an experiment,
 not an installation or supported configuration.
 
+On the reference host with Brave `154.1.96.59`, the normal control produced
+zero video inputs and `NotFoundError`; the `WebRtcPipeWireCamera` control
+timed out during enumeration and the permission probe. Neither control reached
+video delivery. Treat this as a documented Chromium/Brave boundary until a new
+version passes the full moving-frame validation sequence.
+
 If the terminal running a temporary test is interrupted while the browser is
 still open, clean up only that recorded control with:
 

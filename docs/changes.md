@@ -371,6 +371,30 @@ launch, stop, status, and rollback in
 [Firefox desktop deployment](firefox-deployment.md); implementation and update
 requirements are in [Developer deployment guide](developer-deployment.md).
 
+### Brave 154 disposable WebRTC controls (2026-09-26)
+
+Brave Browser `154.1.96.59` was retested after the Firefox integration was
+known good. These were real-host controls: PipeWire exposed the physical front
+source and the Camera portal property was true, while the fixed-HD virtual
+source `surface5_frontcamera_hd` was active for each run. The repository test
+harness used a transient user service and a newly created temporary Brave
+profile, so neither test read or changed the normal Brave profile.
+
+* **B1 — normal Brave:** `enumerateDevices()` resolved but returned zero video
+  inputs. The permission probe failed immediately with
+  `NotFoundError: Requested device not found`.
+* **B2 — PipeWire camera feature:** the temporary Brave process command line
+  confirmed `--enable-features=WebRtcPipeWireCamera`. In this case
+  `enumerateDevices()` timed out at 12 seconds; the permission probe and
+  post-probe enumeration also timed out. It never reached virtual-camera
+  selection or frame delivery.
+
+This isolates the current defect to Brave/Chromium camera enumeration on this
+host. The experimental feature is not a usable workaround and is not deployed,
+stored as a Brave preference, or added to a launcher. The test harness removes
+its temporary profile and releases the bridge with `--stop`; Firefox remains
+the verified browser solution.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for

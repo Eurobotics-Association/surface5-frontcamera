@@ -69,6 +69,7 @@ stop_detached_control() {
 if [ "$stop_only" = true ]; then
     [ "$mode" = normal ] && [ "$close_existing" != true ] || { usage >&2; exit 2; }
     stop_detached_control
+    exit 0
 fi
 
 brave=$(command -v brave-browser-stable 2>/dev/null || command -v brave-browser 2>/dev/null || true)
