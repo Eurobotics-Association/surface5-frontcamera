@@ -22,18 +22,6 @@ wpctl status -n | grep -Fq "$physical_source" || { echo "error: required physica
 
 install -D -m 644 "$root/systemd/user/$unit" "$destination"
 systemctl --user daemon-reload
-systemctl --user enable --now "$unit"
-
-for _ in $(seq 1 15); do
-    if systemctl --user --quiet is-active "$unit" && wpctl status -n | grep -Fq "$virtual_source"; then
-        printf 'HD_BRIDGE=active %s\n' "$virtual_source"
-        exit 0
-    fi
-    sleep 1
-done
-systemctl --user --no-pager --full status "$unit" || true
 systemctl --user disable --now "$unit" 2>/dev/null || true
-rm -f "$destination"
-systemctl --user daemon-reload
-echo "error: fixed-HD virtual source did not appear: $virtual_source" >&2
-exit 1
+printf 'HD_BRIDGE=installed-inactive %s\n' "$virtual_source"
+printf 'Start it before a call with: %s/scripts/start-user-hd-camera-bridge.sh\n' "$root"

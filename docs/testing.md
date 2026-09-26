@@ -189,7 +189,9 @@ browser profile, and has a paired status/uninstall path:
 
 ```bash
 ./scripts/install-user-hd-camera-bridge.sh
+./scripts/start-user-hd-camera-bridge.sh
 ./scripts/status-user-hd-camera-bridge.sh
+./scripts/stop-user-hd-camera-bridge.sh
 ./scripts/uninstall-user-hd-camera-bridge.sh
 ```
 
@@ -198,6 +200,12 @@ virtual source explicitly in the browser or conferencing application; do not
 assume that a browser will prefer it over the physical cameras. Treat it as
 experimental until installation, browser restart, and changing-pixel WebRTC
 validation all pass.
+
+The bridge is installed but deliberately inactive at login because a fixed-HD
+source holds the physical camera open. The managed Firefox launcher starts it
+automatically. For another application, run the start command immediately
+before the call and the stop command immediately after it; stopping the bridge
+removes the virtual source and turns off the camera privacy LED.
 
 After installation, use **Run virtual HD camera test** in the local WebRTC
 diagnostic. It selects `Surface5_Front_Camera_HD` with ordinary device

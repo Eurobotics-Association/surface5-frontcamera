@@ -97,6 +97,7 @@ deployment validation described in `docs/testing.md` has passed.
 ./scripts/install-firefox-pipewire.sh
 ./scripts/status-firefox-pipewire.sh
 ./scripts/launch-firefox-pipewire.sh https://fr.webcamtests.com/
+./scripts/stop-user-hd-camera-bridge.sh
 ```
 
 At the site, select `Built-in Front Camera` after permission is granted. The
@@ -112,6 +113,10 @@ deployed:
 
 This also removes the managed fixed-HD virtual source and the WirePlumber
 recovery unit; normal Firefox profiles remain untouched.
+
+The HD bridge is deliberately not enabled at login. The managed Firefox
+launcher starts it before opening Firefox; after a call, use the stop command
+above to release the camera and turn off its privacy LED.
 
 Brave is not supported: normal Brave exposes no usable camera, and its
 experimental PipeWire backend times out during device enumeration.

@@ -29,6 +29,9 @@ cd /home/aev/Github/surface5-frontcamera
 ./scripts/uninstall-user-hd-camera-bridge.sh
 ```
 
+For a non-destructive temporary release of the camera while keeping the bridge
+installed, use `./scripts/stop-user-hd-camera-bridge.sh`.
+
 ## DW9719 external-module rollback
 
 The only proposed system change targets `7.0.0-31-generic` and places a

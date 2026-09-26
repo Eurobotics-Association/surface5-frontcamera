@@ -9,6 +9,11 @@ virtual_source='surface5_frontcamera_hd'
 [ "$#" -eq 0 ] || { echo 'error: no arguments accepted' >&2; exit 2; }
 
 systemctl --user --no-pager --full status "$unit" || true
+if systemctl --user --quiet is-active "$unit"; then
+    echo 'HD_BRIDGE_ACTIVE=yes'
+else
+    echo 'HD_BRIDGE_ACTIVE=no'
+fi
 if wpctl status -n | grep -Fq "$virtual_source"; then
     echo "HD_BRIDGE_SOURCE=present $virtual_source"
 else
