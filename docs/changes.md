@@ -341,9 +341,12 @@ The launcher now starts Firefox in a project-named transient user service
 instead of inheriting the custom menu scope. The transient service automatically
 disappears when Firefox exits; it changes no global portal permission, browser
 setting, or permanent Firefox service. The installer also adds matching Start
-and Stop shortcuts to the user's Desktop directory. The new service-based menu
-and Desktop launcher still require an end-to-end launch verification after the
-current control Firefox instance is closed.
+and Stop shortcuts to the user's Desktop directory. The new service-based
+repository launcher was then verified end to end at WebcamTests. The site
+received `Surface5_Front_Camera_HD` as a visible 1280x720 RGB stream at 29 FPS
+with 108,647 colours and non-zero image metrics. This validates the
+repository-installed Firefox launch path, not merely the direct diagnostic
+control.
 
 ### User-session recovery deployment
 

@@ -65,8 +65,9 @@ That service keeps Firefox alive after the short menu/Desktop action exits and
 is automatically removed when Firefox closes. This is deliberate: on the
 reference Zorin GNOME Wayland session, directly launching Firefox from a
 custom application-menu scope caused the Camera portal to reject its permission
-dialog before Firefox could access the virtual source. The transient-service
-path was verified at WebcamTests with real 1280x720, 29 FPS RGB video.
+dialog before Firefox could access the virtual source. The repository-installed
+transient-service launch path was verified at WebcamTests with real 1280x720,
+29 FPS RGB video.
 
 When the call is finished, open **Stop Surface5 HD Front Camera** from the
 application menu. It stops the bridge, removes the virtual source, releases

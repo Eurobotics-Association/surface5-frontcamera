@@ -111,6 +111,11 @@ camera permission, and select `Surface5_Front_Camera_HD` after labels appear.
 Use the second entry after a call to release the camera and turn off its LED.
 The same two launchers are also placed directly on the desktop.
 
+The service-based menu and Desktop launcher have been verified end to end at
+WebcamTests: `Surface5_Front_Camera_HD` delivered a visible 1280x720 RGB stream
+at 29 FPS. Select that virtual source for calls; the physical front source is
+not the supported WebRTC path on this reference host.
+
 The installer validates Firefox and required user services, recovers the
 libcamera source, confirms the Camera portal, and fails safely if its supported
 hardware source is absent. Run the local virtual-HD diagnostic once after
