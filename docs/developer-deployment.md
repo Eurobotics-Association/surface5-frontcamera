@@ -167,6 +167,7 @@ command:
 ```bash
 ./tests/brave-disposable-webrtc.sh --close-existing
 ./tests/brave-disposable-webrtc.sh --pipewire-camera --close-existing
+./tests/brave-disposable-webrtc.sh --v4l2-camera --close-existing
 ```
 
 Each invocation closes Brave only after the explicit `--close-existing` opt-in,
@@ -175,6 +176,10 @@ removes that profile and releases the bridge when the temporary Brave window
 closes. The second command enables Chromium's experimental
 `WebRtcPipeWireCamera` feature for that one process only. It is an experiment,
 not an installation or supported configuration.
+
+The V4L2 control is for a separately active, verified `/dev/video20` loopback
+camera. It deliberately does not start or stop that producer: this separates
+Brave's ordinary V4L2 backend from Chromium's stalled PipeWire backend.
 
 On the reference host with Brave `154.1.96.59`, the normal control produced
 zero video inputs and `NotFoundError`; the `WebRtcPipeWireCamera` control

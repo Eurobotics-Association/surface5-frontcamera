@@ -5,13 +5,14 @@ set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
 mode=normal
+camera_backend=pipewire
 close_existing=false
 stop_only=false
 control_record="${XDG_RUNTIME_DIR:-/tmp}/surface5-brave-webrtc-control.env"
 
 usage() {
     cat <<'EOF'
-Usage: ./tests/brave-disposable-webrtc.sh [--pipewire-camera] --close-existing
+Usage: ./tests/brave-disposable-webrtc.sh [--pipewire-camera|--v4l2-camera] --close-existing
        ./tests/brave-disposable-webrtc.sh --stop
 
 Runs Brave as a temporary, project-named user service using a new disposable
@@ -20,6 +21,8 @@ processes must be closed because Chromium permits only one instance per user.
 
 --pipewire-camera  add the experimental WebRtcPipeWireCamera feature for this
                     run only; it creates no persistent Brave preference.
+--v4l2-camera      test an already-active conventional V4L2 loopback camera
+                    instead of starting the PipeWire virtual-source bridge.
 --close-existing   close running Brave processes before the test.
 --stop              stop a detached temporary test, release its bridge, and
                     remove its recorded disposable profile.
@@ -34,6 +37,7 @@ EOF
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --pipewire-camera) mode=pipewire-camera ;;
+        --v4l2-camera) camera_backend=v4l2 ;;
         --close-existing) close_existing=true ;;
         --stop) stop_only=true ;;
         --help) usage; exit 0 ;;
@@ -41,6 +45,11 @@ while [ "$#" -gt 0 ]; do
     esac
     shift
 done
+
+if [ "$mode" = pipewire-camera ] && [ "$camera_backend" = v4l2 ]; then
+    echo 'error: --pipewire-camera and --v4l2-camera are mutually exclusive' >&2
+    exit 2
+fi
 
 stop_detached_control() {
     [ -f "$control_record" ] || { echo 'BRAVE_CONTROL=not-running'; exit 0; }
@@ -50,6 +59,7 @@ stop_detached_control() {
     recorded_state=$(control_value CONTROL_STATE_DIR)
     recorded_server_pid=$(control_value CONTROL_SERVER_PID)
     recorded_bridge_was_active=$(control_value CONTROL_BRIDGE_WAS_ACTIVE)
+    recorded_manages_hd_bridge=$(control_value CONTROL_MANAGES_HD_BRIDGE)
     case "$recorded_state" in
         "${TMPDIR:-/tmp}"/surface5-brave-webrtc.*) ;;
         *) echo "error: refusing unexpected temporary-control path: $recorded_state" >&2; exit 1 ;;
@@ -58,7 +68,7 @@ stop_detached_control() {
     if [[ "$recorded_server_pid" =~ ^[0-9]+$ ]] && [ -r "/proc/$recorded_server_pid/cmdline" ] && tr '\0' ' ' < "/proc/$recorded_server_pid/cmdline" | grep -Fq 'browser-webrtc-server.py'; then
         kill "$recorded_server_pid" 2>/dev/null || true
     fi
-    if [ "$recorded_bridge_was_active" != true ]; then
+    if [ "$recorded_manages_hd_bridge" = true ] && [ "$recorded_bridge_was_active" != true ]; then
         systemctl --user stop surface5-frontcamera-hd-bridge.service 2>/dev/null || true
     fi
     rm -rf -- "$recorded_state"
@@ -81,6 +91,16 @@ systemctl --user --quiet is-active pipewire wireplumber xdg-desktop-portal || {
     echo 'error: PipeWire, WirePlumber, or the Camera portal is inactive' >&2
     exit 1
 }
+if [ "$camera_backend" = v4l2 ]; then
+    command -v v4l2-ctl >/dev/null 2>&1 || { echo 'error: v4l2-ctl is required for the V4L2 control' >&2; exit 2; }
+    v4l2_state=$(v4l2-ctl --device=/dev/video20 --all 2>&1 || true)
+    if ! grep -Fq 'Card type        : Surface5_Front_Camera_HD' <<<"$v4l2_state" || \
+       ! grep -Fq 'Video Capture' <<<"$v4l2_state" || \
+       ! grep -Fq 'Width/Height      : 1280/720' <<<"$v4l2_state"; then
+        echo 'error: /dev/video20 is not an active Surface5 1280x720 V4L2 capture camera' >&2
+        exit 1
+    fi
+fi
 
 brave_process_pattern='/opt/brave.com/brave/brave'
 if pgrep -f "$brave_process_pattern" >/dev/null 2>&1; then
@@ -103,12 +123,16 @@ fi
 bridge_unit=surface5-frontcamera-hd-bridge.service
 brave_unit=surface5-brave-webrtc-control
 bridge_was_active=false
-if systemctl --user --quiet is-active "$bridge_unit"; then
-    bridge_was_active=true
+manages_hd_bridge=false
+if [ "$camera_backend" = pipewire ]; then
+    manages_hd_bridge=true
+    if systemctl --user --quiet is-active "$bridge_unit"; then
+        bridge_was_active=true
+    fi
 fi
 
 timestamp=$(date -u +%Y%m%dT%H%M%SZ)
-result_root="${HOME}/Pictures/surface5-frontcamera-tests/${timestamp}-brave-webrtc-${mode}"
+result_root="${HOME}/Pictures/surface5-frontcamera-tests/${timestamp}-brave-webrtc-${camera_backend}-${mode}"
 state_dir=$(mktemp -d "${TMPDIR:-/tmp}/surface5-brave-webrtc.XXXXXX")
 profile="$state_dir/profile"
 server_stdout="$state_dir/server.stdout"
@@ -121,7 +145,7 @@ cleanup() {
         kill "$server_pid" 2>/dev/null || true
         wait "$server_pid" 2>/dev/null || true
     fi
-    if [ "$bridge_was_active" != true ]; then
+    if [ "$manages_hd_bridge" = true ] && [ "$bridge_was_active" != true ]; then
         systemctl --user stop "$bridge_unit" 2>/dev/null || true
     fi
     rm -rf -- "$state_dir"
@@ -131,7 +155,9 @@ trap cleanup EXIT INT TERM
 
 umask 077
 mkdir -p "$result_root" "$profile"
-"$root/scripts/start-user-hd-camera-bridge.sh"
+if [ "$manages_hd_bridge" = true ]; then
+    "$root/scripts/start-user-hd-camera-bridge.sh"
+fi
 
 python3 "$root/tests/browser-webrtc-server.py" --root "$root/tests" --output "$result_root" \
     >"$server_stdout" 2>"$server_stderr" &
@@ -151,6 +177,7 @@ url=$(sed -n 's/^LISTENING //p' "$server_stdout" | head -n 1)
     printf 'CONTROL_STATE_DIR=%s\n' "$state_dir"
     printf 'CONTROL_SERVER_PID=%s\n' "$server_pid"
     printf 'CONTROL_BRIDGE_WAS_ACTIVE=%s\n' "$bridge_was_active"
+    printf 'CONTROL_MANAGES_HD_BRIDGE=%s\n' "$manages_hd_bridge"
 } > "$control_record"
 chmod 600 "$control_record"
 
@@ -171,7 +198,7 @@ systemctl --user --quiet is-active "${brave_unit}.service" || {
     exit 1
 }
 
-printf 'BRAVE_CONTROL=running mode=%s\n' "$mode"
+printf 'BRAVE_CONTROL=running backend=%s mode=%s\n' "$camera_backend" "$mode"
 printf 'BRAVE_CONTROL_URL=%s\n' "$url"
 printf 'BRAVE_CONTROL_RESULTS=%s\n' "$result_root"
 printf '%s\n' 'In the temporary Brave window, grant camera access and click “Run virtual HD camera test”.'
