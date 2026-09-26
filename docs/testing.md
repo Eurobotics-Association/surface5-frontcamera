@@ -120,3 +120,19 @@ host session. It is read-only and retains PipeWire, WirePlumber, portal,
 package, browser-packaging, and filtered-log evidence below `~/Pictures/`.
 Before testing webcamtests.com, ensure its browser camera permission is
 **Allow**; do not erase browser settings or profiles.
+
+For a deterministic browser-level control, run:
+
+```bash
+./tests/browser-webrtc-test.sh
+```
+
+Open the displayed `127.0.0.1` URL in exactly one browser and keep the helper
+running while granting the browser prompt. The page separately time-bounds and
+reports `mediaDevices`, enumeration before permission, `getUserMedia`,
+enumeration after permission, track label/settings/capabilities, and actual
+video dimensions after playback. A timeout is recorded distinctly as
+`ENUMERATE_BEFORE_TIMEOUT`, `GETUSERMEDIA_TIMEOUT`, or
+`ENUMERATE_AFTER_TIMEOUT`. The helper stops its own localhost server when
+interrupted and writes only textual HTTP/event logs below the private Pictures
+test directory; it does not retain frames or alter browser profiles.

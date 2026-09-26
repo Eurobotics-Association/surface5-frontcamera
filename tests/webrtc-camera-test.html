@@ -1,0 +1,99 @@
+<!-- SPDX-License-Identifier: GPL-2.0-only -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Surface Pro 5 WebRTC camera diagnostic</title>
+  <style>
+    body { background: #101418; color: #e8edf2; font: 16px/1.45 system-ui, sans-serif; margin: 2rem; max-width: 72rem; }
+    button { font: inherit; padding: .55rem .85rem; }
+    video { background: #000; display: block; margin: 1rem 0; max-height: 60vh; max-width: 100%; }
+    pre { background: #181e25; border: 1px solid #36404b; overflow-wrap: anywhere; padding: 1rem; white-space: pre-wrap; }
+    .ok { color: #75e096; } .error { color: #ff8f8f; } .timeout { color: #ffd36e; }
+  </style>
+</head>
+<body>
+  <h1>WebRTC camera diagnostic</h1>
+  <p>This local page tests each browser camera API step independently. It records only textual API results to the private result directory created by the shell helper; it never captures or uploads frames.</p>
+  <button id="run" type="button">Run fresh test</button>
+  <video id="preview" autoplay muted playsinline></video>
+  <pre id="output" aria-live="polite">Waiting to run.</pre>
+  <script>
+    'use strict';
+    const timeoutMs = 12_000;
+    const output = document.querySelector('#output');
+    const video = document.querySelector('#preview');
+    const runButton = document.querySelector('#run');
+    let stream;
+
+    function compact(value) {
+      if (value instanceof Error) return { name: value.name, message: value.message };
+      return value;
+    }
+    function render(kind, message, detail) {
+      const line = document.createElement('div');
+      line.className = kind;
+      line.textContent = `${new Date().toISOString()} ${message}${detail === undefined ? '' : ` ${JSON.stringify(detail)}`}`;
+      output.append(line);
+      output.scrollTop = output.scrollHeight;
+      void fetch('/report', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ timestamp: new Date().toISOString(), event: message, detail: compact(detail) })
+      }).catch(() => {});
+    }
+    async function within(label, promise) {
+      const started = performance.now();
+      let timer;
+      try {
+        const result = await Promise.race([
+          promise,
+          new Promise((_, reject) => { timer = setTimeout(() => reject(new DOMException(`${label} exceeded ${timeoutMs} ms`, 'TimeoutError')), timeoutMs); })
+        ]);
+        render('ok', `${label}_OK`, { elapsedMs: Math.round(performance.now() - started), value: result });
+        return result;
+      } catch (error) {
+        const timeout = error && error.name === 'TimeoutError';
+        render(timeout ? 'timeout' : 'error', `${label}_${timeout ? 'TIMEOUT' : 'ERROR'}`, { elapsedMs: Math.round(performance.now() - started), error: compact(error) });
+        return undefined;
+      } finally { clearTimeout(timer); }
+    }
+    function deviceSummary(devices) {
+      return devices.map(({ kind, label, deviceId, groupId }) => ({ kind, label, deviceId: deviceId ? 'present' : '', groupId: groupId ? 'present' : '' }));
+    }
+    function waitForPlayback() {
+      return new Promise((resolve, reject) => {
+        if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA && video.videoWidth) return resolve();
+        video.addEventListener('playing', resolve, { once: true });
+        video.addEventListener('error', () => reject(video.error || new Error('video element error')), { once: true });
+      });
+    }
+    async function run() {
+      runButton.disabled = true;
+      output.replaceChildren();
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+      render('ok', 'TEST_START', { secureContext: window.isSecureContext, origin: location.origin, timeoutMs });
+      const mediaDevices = navigator.mediaDevices;
+      render(mediaDevices ? 'ok' : 'error', 'MEDIADEVICES', { present: Boolean(mediaDevices), enumerateDevices: Boolean(mediaDevices?.enumerateDevices), getUserMedia: Boolean(mediaDevices?.getUserMedia) });
+      if (!mediaDevices?.enumerateDevices || !mediaDevices?.getUserMedia) { runButton.disabled = false; return; }
+      const before = await within('ENUMERATE_BEFORE', mediaDevices.enumerateDevices().then(deviceSummary));
+      if (before) render('ok', 'ENUMERATE_BEFORE_VIDEOINPUT_COUNT', { count: before.filter(device => device.kind === 'videoinput').length });
+      stream = await within('GETUSERMEDIA', mediaDevices.getUserMedia({ video: true, audio: false }));
+      if (stream) {
+        const track = stream.getVideoTracks()[0];
+        render('ok', 'VIDEO_TRACK', { label: track?.label || '', readyState: track?.readyState || '', settings: track?.getSettings?.() || {}, capabilities: track?.getCapabilities?.() || {} });
+        video.srcObject = stream;
+        await within('VIDEO_PLAYBACK', Promise.resolve(video.play()).then(waitForPlayback));
+        render(video.videoWidth && video.videoHeight ? 'ok' : 'error', 'VIDEO_DIMENSIONS', { videoWidth: video.videoWidth, videoHeight: video.videoHeight, readyState: video.readyState });
+      }
+      const after = await within('ENUMERATE_AFTER', mediaDevices.enumerateDevices().then(deviceSummary));
+      if (after) render('ok', 'ENUMERATE_AFTER_VIDEOINPUT_COUNT', { count: after.filter(device => device.kind === 'videoinput').length });
+      render('ok', 'TEST_COMPLETE');
+      runButton.disabled = false;
+    }
+    runButton.addEventListener('click', run);
+    void run();
+  </script>
+</body>
+</html>

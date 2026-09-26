@@ -58,6 +58,7 @@ by default.
 ./tests/enumeration.sh
 ./tests/capture.sh --frames 8
 ./tests/restart-stream.sh --cycles 5
+./tests/browser-webrtc-test.sh
 ./scripts/build-dw9719-7.0.sh
 ./scripts/status.sh
 ./tests/host-validation.sh
@@ -71,6 +72,10 @@ committed and must be handled as personal data.
 `capture.sh` records temporary raw frames only for objective checks (count,
 size, SHA-256, Y-plane statistics, and duplicate-frame detection). It deletes
 them by default; use `--keep` only when inspecting a local, private capture.
+
+`browser-webrtc-test.sh` serves a localhost-only, timeout-bounded diagnostic
+and records textual browser API events under the same private test directory.
+It neither records camera frames nor changes a browser profile.
 
 After the current kernel has passed the reviewed controlled test, the guarded
 maintenance commands are:
