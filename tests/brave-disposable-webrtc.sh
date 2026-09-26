@@ -6,10 +6,13 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 mode=normal
 close_existing=false
+stop_only=false
+control_record="${XDG_RUNTIME_DIR:-/tmp}/surface5-brave-webrtc-control.env"
 
 usage() {
     cat <<'EOF'
 Usage: ./tests/brave-disposable-webrtc.sh [--pipewire-camera] --close-existing
+       ./tests/brave-disposable-webrtc.sh --stop
 
 Runs Brave as a temporary, project-named user service using a new disposable
 profile. It neither reads nor writes the normal Brave profile. Brave's normal
@@ -18,6 +21,8 @@ processes must be closed because Chromium permits only one instance per user.
 --pipewire-camera  add the experimental WebRtcPipeWireCamera feature for this
                     run only; it creates no persistent Brave preference.
 --close-existing   close running Brave processes before the test.
+--stop              stop a detached temporary test, release its bridge, and
+                    remove its recorded disposable profile.
 
 The script starts the known-good fixed-HD virtual source and a localhost-only
 WebRTC test. In the temporary Brave window, grant the prompt and click “Run
@@ -30,11 +35,41 @@ while [ "$#" -gt 0 ]; do
     case "$1" in
         --pipewire-camera) mode=pipewire-camera ;;
         --close-existing) close_existing=true ;;
+        --stop) stop_only=true ;;
         --help) usage; exit 0 ;;
         *) usage >&2; exit 2 ;;
     esac
     shift
 done
+
+stop_detached_control() {
+    [ -f "$control_record" ] || { echo 'BRAVE_CONTROL=not-running'; exit 0; }
+    control_value() {
+        sed -n "s/^$1=//p" "$control_record" | tail -n 1
+    }
+    recorded_state=$(control_value CONTROL_STATE_DIR)
+    recorded_server_pid=$(control_value CONTROL_SERVER_PID)
+    recorded_bridge_was_active=$(control_value CONTROL_BRIDGE_WAS_ACTIVE)
+    case "$recorded_state" in
+        "${TMPDIR:-/tmp}"/surface5-brave-webrtc.*) ;;
+        *) echo "error: refusing unexpected temporary-control path: $recorded_state" >&2; exit 1 ;;
+    esac
+    systemctl --user stop surface5-brave-webrtc-control.service 2>/dev/null || true
+    if [[ "$recorded_server_pid" =~ ^[0-9]+$ ]] && [ -r "/proc/$recorded_server_pid/cmdline" ] && tr '\0' ' ' < "/proc/$recorded_server_pid/cmdline" | grep -Fq 'browser-webrtc-server.py'; then
+        kill "$recorded_server_pid" 2>/dev/null || true
+    fi
+    if [ "$recorded_bridge_was_active" != true ]; then
+        systemctl --user stop surface5-frontcamera-hd-bridge.service 2>/dev/null || true
+    fi
+    rm -rf -- "$recorded_state"
+    rm -f -- "$control_record"
+    echo 'BRAVE_CONTROL=stopped; temporary profile removed and camera bridge released.'
+}
+
+if [ "$stop_only" = true ]; then
+    [ "$mode" = normal ] && [ "$close_existing" != true ] || { usage >&2; exit 2; }
+    stop_detached_control
+fi
 
 brave=$(command -v brave-browser-stable 2>/dev/null || command -v brave-browser 2>/dev/null || true)
 [ -n "$brave" ] && [ -x "$brave" ] || { echo 'error: Brave is not installed' >&2; exit 2; }
@@ -89,6 +124,7 @@ cleanup() {
         systemctl --user stop "$bridge_unit" 2>/dev/null || true
     fi
     rm -rf -- "$state_dir"
+    rm -f -- "$control_record"
 }
 trap cleanup EXIT INT TERM
 
@@ -110,6 +146,12 @@ for _ in $(seq 1 50); do
 done
 url=$(sed -n 's/^LISTENING //p' "$server_stdout" | head -n 1)
 [ -n "$url" ] || { echo 'error: localhost WebRTC server did not publish a URL' >&2; exit 1; }
+{
+    printf 'CONTROL_STATE_DIR=%s\n' "$state_dir"
+    printf 'CONTROL_SERVER_PID=%s\n' "$server_pid"
+    printf 'CONTROL_BRIDGE_WAS_ACTIVE=%s\n' "$bridge_was_active"
+} > "$control_record"
+chmod 600 "$control_record"
 
 args=(--no-first-run --no-default-browser-check "--user-data-dir=$profile" "$url")
 if [ "$mode" = pipewire-camera ]; then
@@ -132,7 +174,7 @@ printf 'BRAVE_CONTROL=running mode=%s\n' "$mode"
 printf 'BRAVE_CONTROL_URL=%s\n' "$url"
 printf 'BRAVE_CONTROL_RESULTS=%s\n' "$result_root"
 printf '%s\n' 'In the temporary Brave window, grant camera access and click “Run virtual HD camera test”.'
-printf '%s\n' 'Close the temporary Brave window when finished. This script will then stop the bridge and delete its disposable profile.'
+printf '%s\n' 'Close the temporary Brave window when finished. If this terminal disconnects, run this script with --stop to release the bridge and remove its disposable profile.'
 
 while systemctl --user --quiet is-active "${brave_unit}.service"; do
     sleep 1

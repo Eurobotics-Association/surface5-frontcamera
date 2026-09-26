@@ -175,3 +175,10 @@ removes that profile and releases the bridge when the temporary Brave window
 closes. The second command enables Chromium's experimental
 `WebRtcPipeWireCamera` feature for that one process only. It is an experiment,
 not an installation or supported configuration.
+
+If the terminal running a temporary test is interrupted while the browser is
+still open, clean up only that recorded control with:
+
+```bash
+./tests/brave-disposable-webrtc.sh --stop
+```
