@@ -19,6 +19,7 @@
   <button id="run" type="button">Run default-then-front test</button>
   <button id="run-front" type="button">Run permission-then-front test</button>
   <button id="run-front-hd" type="button">Run permission-then-front HD test</button>
+  <button id="run-virtual-hd" type="button">Run virtual HD camera test</button>
   <video id="preview" autoplay muted playsinline></video>
   <canvas id="analysis" hidden></canvas>
   <pre id="output" aria-live="polite">Waiting to run.</pre>
@@ -31,6 +32,7 @@
     const runButton = document.querySelector('#run');
     const frontButton = document.querySelector('#run-front');
     const frontHdButton = document.querySelector('#run-front-hd');
+    const virtualHdButton = document.querySelector('#run-virtual-hd');
     let stream;
 
     function compact(value) {
@@ -128,35 +130,38 @@
       runButton.disabled = true;
       frontButton.disabled = true;
       frontHdButton.disabled = true;
+      virtualHdButton.disabled = true;
       output.replaceChildren();
       await stopCurrentStream();
       render('ok', 'TEST_START', { secureContext: window.isSecureContext, origin: location.origin, timeoutMs, mode });
       const mediaDevices = navigator.mediaDevices;
       render(mediaDevices ? 'ok' : 'error', 'MEDIADEVICES', { present: Boolean(mediaDevices), enumerateDevices: Boolean(mediaDevices?.enumerateDevices), getUserMedia: Boolean(mediaDevices?.getUserMedia) });
-      if (!mediaDevices?.enumerateDevices || !mediaDevices?.getUserMedia) { runButton.disabled = false; frontButton.disabled = false; frontHdButton.disabled = false; return; }
+      if (!mediaDevices?.enumerateDevices || !mediaDevices?.getUserMedia) { runButton.disabled = false; frontButton.disabled = false; frontHdButton.disabled = false; virtualHdButton.disabled = false; return; }
       const before = await within('ENUMERATE_BEFORE', mediaDevices.enumerateDevices(), deviceSummary);
       if (before) render('ok', 'ENUMERATE_BEFORE_VIDEOINPUT_COUNT', { count: before.filter(device => device.kind === 'videoinput').length });
-      let front = before?.find(device => device.kind === 'videoinput' && /front/i.test(device.label));
-      if (mode === 'permission-then-front' || mode === 'permission-then-front-hd') {
-        if (!front?.deviceId) {
-          render('ok', 'FRONT_LABEL_HIDDEN_BEFORE_PERMISSION', { note: 'Browser privacy behavior: obtaining permission is required before selecting a labeled physical camera.' });
+      const virtualMode = mode === 'permission-then-virtual-hd';
+      const requestedDevice = devices => devices?.find(device => device.kind === 'videoinput' && (virtualMode ? /surface5.*front.*camera.*hd/i.test(device.label) : /front/i.test(device.label)));
+      let camera = requestedDevice(before);
+      if (mode === 'permission-then-front' || mode === 'permission-then-front-hd' || virtualMode) {
+        if (!camera?.deviceId) {
+          render('ok', 'CAMERA_LABEL_HIDDEN_BEFORE_PERMISSION', { note: 'Browser privacy behavior: obtaining permission is required before selecting a labeled physical or virtual camera.' });
           const permissionStream = await within('GETUSERMEDIA_PERMISSION_PROBE', mediaDevices.getUserMedia({ video: true, audio: false }));
           if (permissionStream) {
             await showStream('PERMISSION_PROBE', permissionStream);
             await stopCurrentStream();
           }
           const afterPermission = await within('ENUMERATE_AFTER_PERMISSION_PROBE', mediaDevices.enumerateDevices(), deviceSummary);
-          front = afterPermission?.find(device => device.kind === 'videoinput' && /front/i.test(device.label));
+          camera = requestedDevice(afterPermission);
         }
-        if (!front?.deviceId) {
-          render('error', 'FRONT_CAMERA_NOT_AVAILABLE_AFTER_PERMISSION');
+        if (!camera?.deviceId) {
+          render('error', virtualMode ? 'VIRTUAL_HD_CAMERA_NOT_AVAILABLE_AFTER_PERMISSION' : 'FRONT_CAMERA_NOT_AVAILABLE_AFTER_PERMISSION');
         } else {
           const exactHd = mode === 'permission-then-front-hd';
-          const step = exactHd ? 'FRONT_HD' : 'FRONT';
+          const step = virtualMode ? 'VIRTUAL_HD' : exactHd ? 'FRONT_HD' : 'FRONT';
           const video = exactHd
-            ? { deviceId: { exact: front.deviceId }, width: { exact: 1280 }, height: { exact: 720 } }
-            : { deviceId: { exact: front.deviceId } };
-          render('ok', 'FRONT_CAMERA_SELECTED', { label: front.label, phase: 'after-permission', requested: exactHd ? '1280x720' : 'browser-default' });
+            ? { deviceId: { exact: camera.deviceId }, width: { exact: 1280 }, height: { exact: 720 } }
+            : { deviceId: { exact: camera.deviceId } };
+          render('ok', 'CAMERA_SELECTED', { label: camera.label, phase: 'after-permission', requested: exactHd ? '1280x720' : 'browser-default' });
           const frontStream = await within(`GETUSERMEDIA_${step}`, mediaDevices.getUserMedia({ video, audio: false }));
           if (frontStream) await showStream(step, frontStream);
         }
@@ -169,6 +174,7 @@
         runButton.disabled = false;
         frontButton.disabled = false;
         frontHdButton.disabled = false;
+        virtualHdButton.disabled = false;
         return;
       }
       stream = await within('GETUSERMEDIA', mediaDevices.getUserMedia({ video: true, audio: false }));
@@ -193,10 +199,12 @@
       runButton.disabled = false;
       frontButton.disabled = false;
       frontHdButton.disabled = false;
+      virtualHdButton.disabled = false;
     }
     runButton.addEventListener('click', () => void run('default-then-front'));
     frontButton.addEventListener('click', () => void run('permission-then-front'));
     frontHdButton.addEventListener('click', () => void run('permission-then-front-hd'));
+    virtualHdButton.addEventListener('click', () => void run('permission-then-virtual-hd'));
   </script>
 </body>
 </html>

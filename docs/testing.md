@@ -199,6 +199,11 @@ assume that a browser will prefer it over the physical cameras. Treat it as
 experimental until installation, browser restart, and changing-pixel WebRTC
 validation all pass.
 
+After installation, use **Run virtual HD camera test** in the local WebRTC
+diagnostic. It selects `Surface5_Front_Camera_HD` with ordinary device
+selection rather than an exact resolution constraint; pass only when the
+reported `VIRTUAL_HD_FRAME_PIXELS` samples are changing and non-black.
+
 ## WirePlumber graphical-session recovery
 
 The target session reproduced a WirePlumber startup race: the service started
