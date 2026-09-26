@@ -50,6 +50,7 @@ capture and desktop tests must run from the normal host user session. See
 - [Upstream research and patch audit](docs/research.md)
 - [Diagnostics and test procedure](docs/testing.md)
 - [Firefox desktop deployment](docs/firefox-deployment.md)
+- [Developer and AI deployment guide](docs/developer-deployment.md)
 - [Change plan and results](docs/changes.md)
 - [Rollback](docs/rollback.md)
 

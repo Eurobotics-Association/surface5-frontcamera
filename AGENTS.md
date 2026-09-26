@@ -50,3 +50,51 @@
   already-current components, and a scoped rollback entry point. A version
   record is evidence of deployment state, never evidence of camera-frame
   correctness.
+
+## Deployable Firefox integration: durable maintenance contract
+
+The currently verified browser solution is deliberately narrow: **system
+Firefox** on the reference Surface Pro 5 / Ubuntu-or-Zorin stack, using the
+fixed-HD virtual source `Surface5_Front_Camera_HD`. It is a supported Firefox
+workaround, not a general Debian/Ubuntu installer and not evidence that Brave
+works. Keep the user-facing instructions short in
+`docs/firefox-deployment.md`; keep implementation, update, and diagnostic
+details in `docs/developer-deployment.md`.
+
+- The source of truth for the deployed product identity is
+  `config/deployment-version.env` (currently
+  `EBtx-surface5-HDCam-patch 1.0.260926`). Bump the version for a released
+  deployment change; do not put host-specific state in Git.
+- The installer-owned trace is
+  `~/.local/share/surface5-frontcamera/deployment.env`, mode 600. It records
+  product, version, source revision, and deployment time. It is inspectable
+  local evidence only, never proof that video frames work and never a file to
+  commit.
+- `./scripts/install-firefox-pipewire.sh` is the only supported deployment
+  entry point. Its no-argument mode must: (1) leave a fully current deployment
+  untouched, including WirePlumber and an active call; (2) adopt only a missing
+  or stale trace when all managed components match; (3) repair component drift
+  through the versioned workflow; and (4) fail rather than overwrite a trace
+  belonging to another product. Keep `--version`, `--status`, and `--rollback`
+  functional and scoped.
+- Deployment owns only its isolated Firefox profile, user units, helpers,
+  desktop entries, Desktop shortcuts, and trace. It must not modify the normal
+  Firefox profile, package configuration, global portal permissions, device
+  ACLs, or browser settings outside that profile. Rollback must remove only
+  those owned paths and release the bridge.
+- The Firefox Start launcher intentionally uses a project-named transient user
+  service. A direct custom GNOME menu scope was verified to fail Camera-portal
+  focus association (`Only the focused app is allowed ...`); do not replace the
+  service path with a custom permission-store entry, a manual browser launch,
+  or another untracked hotfix without new evidence and full deployment tests.
+- A release/change is not verified until it has passed repository install,
+  repeat-install no-op, launcher start, actual changing non-black 1280x720
+  WebRTC frames, stop/release behavior, and scoped rollback. Preserve Firefox
+  as the working control while investigating other browsers.
+- Brave work is experimental until the same moving-frame criteria pass through
+  a repository-managed installation. Use disposable profiles and reversible
+  diagnostics; do not persist flags, preferences, portal permissions, or a
+  Brave launcher merely because Brave is detected.
+- Never include captured images, raw frames, browser profiles, logs containing
+  personal data, credentials, or host deployment traces in commits. Private
+  test artifacts remain under `~/Pictures/surface5-frontcamera-tests/`.

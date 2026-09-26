@@ -360,6 +360,17 @@ WirePlumber or interrupt a camera call. The installer also provides read-only
 `--status`, `--version`, and scoped `--rollback` entry points. Rollback removes
 only the tracked Firefox deployment and its trace.
 
+### Deployment documentation contract (2026-09-26)
+
+The project rules now preserve the Firefox deployment invariants for future AI
+and human maintainers: the versioned product identity and local trace, safe
+no-op/adoption/repair behavior, scoped rollback, ownership boundaries,
+transient-service launcher rationale, and the requirement for actual
+moving-frame validation. User instructions remain limited to installation,
+launch, stop, status, and rollback in
+[Firefox desktop deployment](firefox-deployment.md); implementation and update
+requirements are in [Developer deployment guide](developer-deployment.md).
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for

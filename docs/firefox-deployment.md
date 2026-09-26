@@ -48,20 +48,14 @@ It does not modify Firefox's normal profile, a browser package, global camera
 permissions, device ACLs, or the kernel. The HD bridge is installed inactive,
 so it does not hold the camera or light its LED at login.
 
-The installer records an auditable, user-owned deployment trace at
-`~/.local/share/surface5-frontcamera/deployment.env`. The current record is
-`EBtx-surface5-HDCam-patch 1.0.260926`; it contains the product, deployment
-version, source revision when available, and installation timestamp. A repeat
-install checks that record and all project-owned deployed components. If they
-already match, it reports `already-current` and does not restart WirePlumber,
-stop the bridge, or rewrite deployment files. If an older record has matching
-components, it adopts it by writing only the updated record. A changed or
-missing component is repaired through the normal versioned installer.
-
 ```bash
 ./scripts/install-firefox-pipewire.sh --version
 ./scripts/install-firefox-pipewire.sh --status
 ```
+
+It is safe to run the install command again: if the deployment is already
+current, it reports that fact without interrupting WirePlumber or a call. Run
+an update or repair when the camera is not in use.
 
 ## Use
 
@@ -74,15 +68,6 @@ On a WebRTC
 site, grant Firefox's camera permission and select
 **Surface5_Front_Camera_HD**. Do not select **Built-in Front Camera** for a
 call: its normal 640x480 route is the known-black path on this reference host.
-
-The launcher starts Firefox in a project-named **transient user service**.
-That service keeps Firefox alive after the short menu/Desktop action exits and
-is automatically removed when Firefox closes. This is deliberate: on the
-reference Zorin GNOME Wayland session, directly launching Firefox from a
-custom application-menu scope caused the Camera portal to reject its permission
-dialog before Firefox could access the virtual source. The repository-installed
-transient-service launch path was verified at WebcamTests with real 1280x720,
-29 FPS RGB video.
 
 When the call is finished, open **Stop Surface5 HD Front Camera** from the
 application menu. It stops the bridge, removes the virtual source, releases
@@ -136,15 +121,9 @@ This removes only the managed profile, project-owned desktop entries/helpers,
 and project-owned user services. It leaves Firefox, unrelated Firefox profiles,
 browser packages, and camera permissions intact.
 
-## Maintainer and AI contract
+## For developers and AI agents
 
-Treat this as a deployable product feature, not a host-specific hotfix. Keep
-installation, status, desktop-launcher, and uninstall paths versioned together.
-Do not claim browser support for a new device, OS stack, or browser until the
-repository installation, a browser restart, actual changing-frame WebRTC
-playback, and rollback have all been verified.
-
-For a new deployment version, update `config/deployment-version.env`, preserve
-the same product identity unless a genuinely different product is introduced,
-and verify both the adoption/no-op path and the repair path. Never use the
-deployment trace as a substitute for actual WebRTC moving-frame validation.
+The technical deployment contract, installed-component map, upgrade behavior,
+trace format, and validation requirements are in
+[Developer deployment guide](developer-deployment.md). Those details are kept
+there so this page stays focused on everyday installation and removal.
