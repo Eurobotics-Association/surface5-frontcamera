@@ -131,8 +131,49 @@ Open the displayed `127.0.0.1` URL in exactly one browser and keep the helper
 running while granting the browser prompt. The page separately time-bounds and
 reports `mediaDevices`, enumeration before permission, `getUserMedia`,
 enumeration after permission, track label/settings/capabilities, and actual
-video dimensions after playback. A timeout is recorded distinctly as
+video dimensions after playback. When a post-permission label includes
+`front`, it makes a second, exact-device request and reports that stream
+separately. A timeout is recorded distinctly as
 `ENUMERATE_BEFORE_TIMEOUT`, `GETUSERMEDIA_TIMEOUT`, or
 `ENUMERATE_AFTER_TIMEOUT`. The helper stops its own localhost server when
 interrupted and writes only textual HTTP/event logs below the private Pictures
 test directory; it does not retain frames or alter browser profiles.
+
+For the Firefox PipeWire control, use the repository's
+`tests/firefox-pipewire-user.js` only in a newly created disposable profile.
+It enables the currently upstream-defined, GTK-specific
+`media.webrtc.camera.allow-pipewire` preference; do not copy it into the normal
+Firefox profile unless that control test has demonstrated a working result.
+
+The verified operational launcher is:
+
+```bash
+./scripts/launch-firefox-pipewire.sh https://fr.webcamtests.com/
+```
+
+It creates an isolated profile at
+`~/.local/share/surface5-frontcamera/firefox-pipewire-profile`, leaving normal
+Firefox profiles unchanged. Its `user.js` enables only the PipeWire camera
+preference. Roll it back with:
+
+```bash
+./scripts/uninstall-firefox-pipewire-profile.sh --purge-profile
+```
+
+## WirePlumber graphical-session recovery
+
+The target session reproduced a WirePlumber startup race: the service started
+before the graphical logind ACL existed for `/dev/media0` and `/dev/media1`,
+then never rediscovered libcamera after the ACL appeared. The repository unit
+restarts WirePlumber once when `graphical-session.target` starts; it does not
+change device permissions, poll, or run as root.
+
+```bash
+./scripts/install-user-camera-recovery.sh
+./scripts/status-user-camera-recovery.sh
+./scripts/uninstall-user-camera-recovery.sh
+```
+
+After installation, verify on the next logout/login (or reboot) that `wpctl
+status -n` lists `libcamera_input.__SB_.PCI0.I2C2.CAMF` and the portal Camera
+property is true without a manual restart.

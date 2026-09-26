@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-2.0-only
+[Unit]
+Description=Recover WirePlumber camera discovery when the graphical session starts
+After=wireplumber.service
+PartOf=graphical-session.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl --user restart wireplumber.service
+
+[Install]
+WantedBy=graphical-session.target

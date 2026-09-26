@@ -196,6 +196,38 @@ granted site camera permission at webcamtests.com, but reports
 functional investigation to Brave's WebRTC camera backend, not permissions,
 PipeWire enumeration, or the camera stack.
 
-The next non-persistent controlled test is launching Brave with
-`--enable-features=WebRtcPipeWireCamera`. Do not record it as a fix unless the
-site actually enumerates and streams the front camera.
+This was the browser boundary before the controlled localhost tests below.
+
+### Browser control results (2026-09-26)
+
+On the real host session, after the documented WirePlumber recovery, `cam -l`
+listed both internal cameras, PipeWire listed
+`libcamera_input.__SB_.PCI0.I2C2.CAMF` as the default source, and the Camera
+portal property was true. The repository-local WebRTC page produced these
+separate results without retaining frames:
+
+* Brave 153.1.95.101 with its normal backend resolved enumeration but exposed
+  zero `videoinput` devices and returned `NotFoundError` from `getUserMedia`.
+* The same Brave build with its compiled `WebRtcPipeWireCamera` feature
+  explicitly enabled timed out in both pre-permission enumeration and
+  `getUserMedia` after 12 seconds. The process arguments confirmed the feature
+  was active while the PipeWire source and Camera portal remained healthy.
+* Portable Mozilla Firefox 156.0.1 with its default GTK camera backend had the
+  same zero-video-input/`NotFoundError` result. With only
+  `media.webrtc.camera.allow-pipewire=true` in a disposable profile, it listed
+  both cameras after permission, made an exact request for `Built-in Front
+  Camera`, and produced a live 640x480 front stream.
+
+This proves a practical Firefox/PipeWire workaround and isolates the remaining
+Brave failure to Chromium's PipeWire camera backend on this host, not the
+kernel, libcamera, WirePlumber source, or portal.
+
+### User-session recovery deployment
+
+The repository now provides a user-only one-shot unit, enabled for
+`graphical-session.target`. It restarted WirePlumber successfully when
+installed in the active session; after stabilization both libcamera sources and
+the true portal Camera property returned. It changes no device ACL, kernel
+component, or global system configuration. The target is enabled and its exact
+uninstall command is documented. A fresh logout/login or reboot check remains
+required to prove that the target fires at the next graphical-session start.

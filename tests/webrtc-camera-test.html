@@ -42,7 +42,7 @@
         body: JSON.stringify({ timestamp: new Date().toISOString(), event: message, detail: compact(detail) })
       }).catch(() => {});
     }
-    async function within(label, promise) {
+    async function within(label, promise, reportValue = value => value) {
       const started = performance.now();
       let timer;
       try {
@@ -50,7 +50,7 @@
           promise,
           new Promise((_, reject) => { timer = setTimeout(() => reject(new DOMException(`${label} exceeded ${timeoutMs} ms`, 'TimeoutError')), timeoutMs); })
         ]);
-        render('ok', `${label}_OK`, { elapsedMs: Math.round(performance.now() - started), value: result });
+        render('ok', `${label}_OK`, { elapsedMs: Math.round(performance.now() - started), value: reportValue(result) });
         return result;
       } catch (error) {
         const timeout = error && error.name === 'TimeoutError';
@@ -68,6 +68,14 @@
         video.addEventListener('error', () => reject(video.error || new Error('video element error')), { once: true });
       });
     }
+    async function showStream(step, newStream) {
+      stream = newStream;
+      const track = stream.getVideoTracks()[0];
+      render('ok', `${step}_VIDEO_TRACK`, { label: track?.label || '', readyState: track?.readyState || '', settings: track?.getSettings?.() || {}, capabilities: track?.getCapabilities?.() || {} });
+      video.srcObject = stream;
+      await within(`${step}_VIDEO_PLAYBACK`, Promise.resolve(video.play()).then(waitForPlayback));
+      render(video.videoWidth && video.videoHeight ? 'ok' : 'error', `${step}_VIDEO_DIMENSIONS`, { videoWidth: video.videoWidth, videoHeight: video.videoHeight, readyState: video.readyState });
+    }
     async function run() {
       runButton.disabled = true;
       output.replaceChildren();
@@ -77,18 +85,21 @@
       const mediaDevices = navigator.mediaDevices;
       render(mediaDevices ? 'ok' : 'error', 'MEDIADEVICES', { present: Boolean(mediaDevices), enumerateDevices: Boolean(mediaDevices?.enumerateDevices), getUserMedia: Boolean(mediaDevices?.getUserMedia) });
       if (!mediaDevices?.enumerateDevices || !mediaDevices?.getUserMedia) { runButton.disabled = false; return; }
-      const before = await within('ENUMERATE_BEFORE', mediaDevices.enumerateDevices().then(deviceSummary));
+      const before = await within('ENUMERATE_BEFORE', mediaDevices.enumerateDevices(), deviceSummary);
       if (before) render('ok', 'ENUMERATE_BEFORE_VIDEOINPUT_COUNT', { count: before.filter(device => device.kind === 'videoinput').length });
       stream = await within('GETUSERMEDIA', mediaDevices.getUserMedia({ video: true, audio: false }));
-      if (stream) {
-        const track = stream.getVideoTracks()[0];
-        render('ok', 'VIDEO_TRACK', { label: track?.label || '', readyState: track?.readyState || '', settings: track?.getSettings?.() || {}, capabilities: track?.getCapabilities?.() || {} });
-        video.srcObject = stream;
-        await within('VIDEO_PLAYBACK', Promise.resolve(video.play()).then(waitForPlayback));
-        render(video.videoWidth && video.videoHeight ? 'ok' : 'error', 'VIDEO_DIMENSIONS', { videoWidth: video.videoWidth, videoHeight: video.videoHeight, readyState: video.readyState });
-      }
-      const after = await within('ENUMERATE_AFTER', mediaDevices.enumerateDevices().then(deviceSummary));
+      if (stream) await showStream('DEFAULT', stream);
+      const after = await within('ENUMERATE_AFTER', mediaDevices.enumerateDevices(), deviceSummary);
       if (after) render('ok', 'ENUMERATE_AFTER_VIDEOINPUT_COUNT', { count: after.filter(device => device.kind === 'videoinput').length });
+      const front = after?.find(device => device.kind === 'videoinput' && /front/i.test(device.label));
+      if (front?.deviceId) {
+        render('ok', 'FRONT_CAMERA_SELECTED', { label: front.label });
+        stream?.getTracks().forEach(track => track.stop());
+        const frontStream = await within('GETUSERMEDIA_FRONT', mediaDevices.getUserMedia({ video: { deviceId: { exact: front.deviceId } }, audio: false }));
+        if (frontStream) await showStream('FRONT', frontStream);
+      } else {
+        render('error', 'FRONT_CAMERA_NOT_AVAILABLE_AFTER_PERMISSION');
+      }
       render('ok', 'TEST_COMPLETE');
       runButton.disabled = false;
     }
