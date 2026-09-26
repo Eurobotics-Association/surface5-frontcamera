@@ -19,6 +19,11 @@ else
 fi
 systemctl --user is-enabled surface5-wireplumber-camera-recovery.service 2>&1 || true
 systemctl --user --quiet is-active pipewire wireplumber xdg-desktop-portal && echo 'USER_SERVICES=active' || echo 'USER_SERVICES=inactive'
+if systemctl --user --quiet is-active surface5-firefox-hd-camera.service; then
+    echo 'MANAGED_FIREFOX=active-transient-service'
+else
+    echo 'MANAGED_FIREFOX=inactive'
+fi
 wpctl status -n | grep -F 'libcamera_input.__SB_.PCI0.I2C2.CAMF' || true
 gdbus call --session --dest org.freedesktop.portal.Desktop \
     --object-path /org/freedesktop/portal/desktop \

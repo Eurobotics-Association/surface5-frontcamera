@@ -21,7 +21,9 @@ touch a normal Firefox profile, restart PipeWire, or alter device access.
 
 It also removes the project-owned **Firefox — Surface5 HD Front Camera** and
 **Stop Surface5 HD Front Camera** application-menu entries plus their launch
-helpers. No normal desktop entries are changed.
+helpers, and removes their matching Desktop shortcuts. If Firefox was started
+by the project launcher, rollback stops that project-owned transient Firefox
+service first. No normal desktop entries are changed.
 
 It also stops and removes the user-level `surface5-frontcamera-hd-bridge`
 service and its `Surface5_Front_Camera_HD` virtual source. To roll back only

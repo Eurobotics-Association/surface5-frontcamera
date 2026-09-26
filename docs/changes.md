@@ -333,6 +333,18 @@ distribution Firefox entry, so GNOME can associate the managed Firefox window
 with the launcher for portal focus checks. This requires a focused-window
 retest; no portal permissions or security policy were changed.
 
+The focused-window retest showed that the custom menu scope still triggered the
+portal denial. A direct launch from the normal terminal scope, by contrast,
+opened a persistent managed Firefox window and WebcamTests verified
+`Surface5_Front_Camera_HD` at 1280x720, 29 FPS with changing RGB image data.
+The launcher now starts Firefox in a project-named transient user service
+instead of inheriting the custom menu scope. The transient service automatically
+disappears when Firefox exits; it changes no global portal permission, browser
+setting, or permanent Firefox service. The installer also adds matching Start
+and Stop shortcuts to the user's Desktop directory. The new service-based menu
+and Desktop launcher still require an end-to-end launch verification after the
+current control Firefox instance is closed.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for

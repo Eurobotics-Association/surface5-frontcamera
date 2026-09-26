@@ -11,6 +11,7 @@ case "$profile" in
     "${XDG_DATA_HOME:-$HOME/.local/share}"/surface5-frontcamera/firefox-pipewire-profile) ;;
     *) echo 'error: unsafe managed profile path' >&2; exit 2 ;;
 esac
+systemctl --user stop surface5-firefox-hd-camera.service 2>/dev/null || true
 rm -rf "$profile"
 "$root/scripts/uninstall-user-firefox-camera-launchers.sh"
 "$root/scripts/uninstall-user-hd-camera-bridge.sh"

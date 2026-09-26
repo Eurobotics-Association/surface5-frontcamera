@@ -109,6 +109,7 @@ adds two application-menu entries: **Firefox — Surface5 HD Front Camera** and
 **Stop Surface5 HD Front Camera**. Start Firefox using the first entry, grant
 camera permission, and select `Surface5_Front_Camera_HD` after labels appear.
 Use the second entry after a call to release the camera and turn off its LED.
+The same two launchers are also placed directly on the desktop.
 
 The installer validates Firefox and required user services, recovers the
 libcamera source, confirms the Camera portal, and fails safely if its supported

@@ -41,6 +41,8 @@ changes anything. It creates only these project-owned items:
 - the repository's WirePlumber recovery and fixed-HD bridge user services;
 - two application-menu entries and their small launch helpers under
   `~/.local/share/surface5-frontcamera/` and `~/.local/share/applications/`.
+- matching executable Start and Stop shortcuts in the desktop directory
+  configured by `xdg-user-dir DESKTOP`.
 
 It does not modify Firefox's normal profile, a browser package, global camera
 permissions, device ACLs, or the kernel. The HD bridge is installed inactive,
@@ -57,6 +59,14 @@ On a WebRTC
 site, grant Firefox's camera permission and select
 **Surface5_Front_Camera_HD**. Do not select **Built-in Front Camera** for a
 call: its normal 640x480 route is the known-black path on this reference host.
+
+The launcher starts Firefox in a project-named **transient user service**.
+That service keeps Firefox alive after the short menu/Desktop action exits and
+is automatically removed when Firefox closes. This is deliberate: on the
+reference Zorin GNOME Wayland session, directly launching Firefox from a
+custom application-menu scope caused the Camera portal to reject its permission
+dialog before Firefox could access the virtual source. The transient-service
+path was verified at WebcamTests with real 1280x720, 29 FPS RGB video.
 
 When the call is finished, open **Stop Surface5 HD Front Camera** from the
 application menu. It stops the bridge, removes the virtual source, releases
@@ -89,10 +99,9 @@ preferences, or a manual PipeWire pipeline as a substitute for this deployment.
 
 If Firefox reports `NotAllowedError` and the user journal contains `Only the
 focused app is allowed to show a system access dialog`, the request was denied
-by the GNOME Camera portal before it reached the virtual source. Ensure the
-Firefox window is focused, reload the page, and start its camera test from that
-focused window. The launcher declares Firefox's standard `StartupWMClass` so
-GNOME associates the window with the launcher. Do not bypass the portal or add
+by the GNOME Camera portal before it reached the virtual source. Use the
+repository-installed Start launcher, focus Firefox, reload the page, and start
+its camera test from that focused window. Do not bypass the portal or add
 permanent permission-store entries as a workaround.
 
 ## Roll back
