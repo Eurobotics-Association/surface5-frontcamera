@@ -131,7 +131,10 @@ Open the displayed `127.0.0.1` URL in exactly one browser and keep the helper
 running while granting the browser prompt. The page separately time-bounds and
 reports `mediaDevices`, enumeration before permission, `getUserMedia`,
 enumeration after permission, track label/settings/capabilities, and actual
-video dimensions after playback. When a post-permission label includes
+video dimensions after playback. It also samples four downscaled video frames
+in memory and reports luminance extrema, mean, and whether pixels changed; an
+`*_FRAME_PIXELS` result with `allBlack: true` is a failure even if the browser
+reports a live track and non-zero dimensions. It stores no image data. When a post-permission label includes
 `front`, it makes a second, exact-device request and reports that stream
 separately. A timeout is recorded distinctly as
 `ENUMERATE_BEFORE_TIMEOUT`, `GETUSERMEDIA_TIMEOUT`, or
@@ -139,13 +142,15 @@ separately. A timeout is recorded distinctly as
 interrupted and writes only textual HTTP/event logs below the private Pictures
 test directory; it does not retain frames or alter browser profiles.
 
-## System Firefox PipeWire deployment
+## System Firefox PipeWire deployment — experimental
 
-The supported path uses the system `firefox` executable, never a portable
+The experimental path uses the system `firefox` executable, never a portable
 browser or a normal Firefox profile. It installs the PipeWire preference only
 in `~/.local/share/surface5-frontcamera/firefox-pipewire-profile`, enables the
 repository's user-session recovery, and verifies the front source plus Camera
-portal before reporting success.
+portal before reporting integration readiness. It does not validate image
+pixels and must not be described as a deployable browser-camera solution until
+the local diagnostic reports changing, non-black frames.
 
 ```bash
 ./scripts/install-firefox-pipewire.sh
@@ -154,9 +159,11 @@ portal before reporting success.
 ```
 
 At WebcamTests, grant the Firefox prompt, select `Built-in Front Camera`, and
-click **Tester ma webcam**. The local `browser-webrtc-test.sh` remains the
-programmatic verification control. Roll back the managed profile and recovery
-unit with `./scripts/uninstall-firefox-pipewire.sh`.
+click **Tester ma webcam**. The current reference host reaches this point but
+WebcamTests receives all-black 1280x720 frames after repeated resolution
+negotiation. The local `browser-webrtc-test.sh` is the programmatic pixel-flow
+verification control. Roll back the managed profile and recovery unit with
+`./scripts/uninstall-firefox-pipewire.sh`.
 
 ## WirePlumber graphical-session recovery
 

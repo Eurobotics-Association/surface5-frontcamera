@@ -247,11 +247,37 @@ does not complete device enumeration on this host.
 
 The deployed launcher was then tested end to end, using the managed profile
 rather than a temporary profile. It completed `getUserMedia`, reported a live
-`Built-in Front Camera` track, and displayed 640x480 video. A subsequent
+`Built-in Front Camera` track, and displayed 640x480 dimensions. A subsequent
 browser start selected the rear camera by default but completed the diagnostic's
-exact front-device request and again displayed live 640x480 front video. The
-managed status check simultaneously reported the enabled recovery unit, active
-user services, default front source, and true Camera portal property.
+exact front-device request and again displayed 640x480 dimensions. The managed
+status check simultaneously reported the enabled recovery unit, active user
+services, default front source, and true Camera portal property. Those results
+were enumeration/playback-state evidence only and must not be interpreted as
+proof of image-bearing frames.
+
+### Firefox all-black WebcamTests result (2026-09-26)
+
+The managed Firefox profile was used at `https://fr.webcamtests.com/`. Firefox
+identified `Built-in Front Camera`, negotiated 1280x720 at 29 FPS, but the site
+reported one colour and zero brightness, saturation, and RGB values: the stream
+was entirely black. Concurrent host evidence showed the Firefox PipeWire stream
+active and targeted at `libcamera_input.__SB_.PCI0.I2C2.CAMF`. During the
+website's sequence of resolution changes (832x480, 640x480, 1024x576, then
+1280x720), PipeWire logged:
+
+```
+ERROR Request request.cpp:472 FrameBuffer already set for stream
+spa.libcamera: can't add buffer 0 for request: File exists
+```
+
+This is a PipeWire libcamera-SPA request/buffer failure after camera access is
+already granted, not a Firefox permission failure, missing camera node, or the
+known one-frame OV5693 startup-black condition. PipeWire 1.0.5 and
+`pipewire-libcamera` 1.0.5 on the Ubuntu 24.04 reference stack are now a
+suspected boundary. The Firefox integration remains experimental and must not
+be deployed to other machines until a browser test verifies changing non-black
+pixels. The WebRTC diagnostic now samples in-memory video luminance and frame
+changes so dimensions alone cannot produce a false pass.
 
 ### User-session recovery deployment
 

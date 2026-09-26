@@ -77,14 +77,14 @@ them by default; use `--keep` only when inspecting a local, private capture.
 and records textual browser API events under the same private test directory.
 It neither records camera frames nor changes a browser profile.
 
-## Firefox browser integration
+## Firefox PipeWire integration — experimental, not yet deployable
 
-Supported scope: the verified Surface Pro 5 / Ubuntu-or-Zorin reference stack
-with a system-installed Firefox, a healthy libcamera PipeWire source, and the
-Camera portal present. This installer does not support Brave and does not
-modify a normal Firefox profile. It creates one isolated managed profile for
-Firefox PipeWire camera use and installs the narrowly scoped WirePlumber
-graphical-session recovery.
+The repository can deploy an isolated Firefox profile for investigation on the
+verified Surface Pro 5 / Ubuntu-or-Zorin reference stack. It does not modify a
+normal Firefox profile and installs the narrowly scoped WirePlumber
+graphical-session recovery. It is **not a browser-camera solution for other
+machines yet**: on the reference host, WebcamTests can open the camera but
+currently receives all-black frames after its repeated resolution negotiation.
 
 ```bash
 ./scripts/install-firefox-pipewire.sh
@@ -95,7 +95,9 @@ graphical-session recovery.
 At the site, select `Built-in Front Camera` after permission is granted. The
 installer validates Firefox and required user services, recovers the libcamera
 source, confirms the Camera portal, and fails safely if its supported hardware
-source is absent. To roll back everything it deployed:
+source is absent. It does not claim that usable camera pixels are flowing; use
+the local diagnostic below before relying on it. To roll back everything it
+deployed:
 
 ```bash
 ./scripts/uninstall-firefox-pipewire.sh
