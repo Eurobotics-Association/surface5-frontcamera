@@ -29,15 +29,21 @@ if [ ! -e "$profile/user.js" ]; then
 fi
 
 "$root/scripts/install-user-camera-recovery.sh"
-wpctl status -n | grep -Fq 'libcamera_input.__SB_.PCI0.I2C2.CAMF' || {
-    echo 'error: PipeWire does not expose the Surface front-camera source after recovery' >&2
-    exit 1
-}
-gdbus call --session --dest org.freedesktop.portal.Desktop \
-    --object-path /org/freedesktop/portal/desktop \
-    --method org.freedesktop.DBus.Properties.Get \
-    org.freedesktop.portal.Camera IsCameraPresent | grep -Fq 'true' || {
-    echo 'error: Camera portal is not present after recovery' >&2
+recovered=false
+for _ in $(seq 1 20); do
+    sources=$(wpctl status -n 2>&1 || true)
+    portal=$(gdbus call --session --dest org.freedesktop.portal.Desktop \
+        --object-path /org/freedesktop/portal/desktop \
+        --method org.freedesktop.DBus.Properties.Get \
+        org.freedesktop.portal.Camera IsCameraPresent 2>&1 || true)
+    if grep -Fq 'libcamera_input.__SB_.PCI0.I2C2.CAMF' <<<"$sources" && grep -Fq 'true' <<<"$portal"; then
+        recovered=true
+        break
+    fi
+    sleep 1
+done
+[ "$recovered" = true ] || {
+    echo 'error: PipeWire front-camera source or Camera portal did not recover within 20 seconds' >&2
     exit 1
 }
 
