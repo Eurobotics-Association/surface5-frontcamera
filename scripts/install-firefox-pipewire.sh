@@ -30,20 +30,26 @@ fi
 
 "$root/scripts/install-user-camera-recovery.sh"
 recovered=false
-for _ in $(seq 1 20); do
+stable_checks=0
+for _ in $(seq 1 25); do
     sources=$(wpctl status -n 2>&1 || true)
     portal=$(gdbus call --session --dest org.freedesktop.portal.Desktop \
         --object-path /org/freedesktop/portal/desktop \
         --method org.freedesktop.DBus.Properties.Get \
         org.freedesktop.portal.Camera IsCameraPresent 2>&1 || true)
     if grep -Fq 'libcamera_input.__SB_.PCI0.I2C2.CAMF' <<<"$sources" && grep -Fq 'true' <<<"$portal"; then
-        recovered=true
-        break
+        stable_checks=$((stable_checks + 1))
+        if [ "$stable_checks" -eq 3 ]; then
+            recovered=true
+            break
+        fi
+    else
+        stable_checks=0
     fi
     sleep 1
 done
 [ "$recovered" = true ] || {
-    echo 'error: PipeWire front-camera source or Camera portal did not recover within 20 seconds' >&2
+    echo 'error: PipeWire front-camera source or Camera portal did not remain healthy after recovery' >&2
     exit 1
 }
 
