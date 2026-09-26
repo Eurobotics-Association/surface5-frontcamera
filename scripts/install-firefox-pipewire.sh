@@ -29,7 +29,8 @@ if [ ! -e "$profile/user.js" ]; then
 fi
 
 wireplumber_pid_before=$(systemctl --user show wireplumber.service --property=MainPID --value)
-"$root/scripts/install-user-camera-recovery.sh"
+"$root/scripts/install-user-camera-recovery.sh" --no-start
+systemctl --user restart wireplumber.service
 restarted=false
 for _ in $(seq 1 20); do
     wireplumber_pid_after=$(systemctl --user show wireplumber.service --property=MainPID --value)
