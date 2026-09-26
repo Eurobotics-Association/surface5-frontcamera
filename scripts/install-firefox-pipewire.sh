@@ -28,7 +28,22 @@ if [ ! -e "$profile/user.js" ]; then
     install -m 600 "$template" "$profile/user.js"
 fi
 
+wireplumber_pid_before=$(systemctl --user show wireplumber.service --property=MainPID --value)
 "$root/scripts/install-user-camera-recovery.sh"
+restarted=false
+for _ in $(seq 1 20); do
+    wireplumber_pid_after=$(systemctl --user show wireplumber.service --property=MainPID --value)
+    if [ "$wireplumber_pid_after" != 0 ] && [ "$wireplumber_pid_after" != "$wireplumber_pid_before" ] && systemctl --user --quiet is-active wireplumber.service; then
+        restarted=true
+        break
+    fi
+    sleep 1
+done
+[ "$restarted" = true ] || {
+    echo 'error: WirePlumber did not complete the requested restart' >&2
+    exit 1
+}
+
 recovered=false
 stable_checks=0
 for _ in $(seq 1 25); do
