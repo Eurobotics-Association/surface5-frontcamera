@@ -38,3 +38,10 @@
   documented rollback. The README must provide a short supported-hardware/OS
   statement, prerequisites, install, verification, limitations, and uninstall
   path suitable for another user.
+- User-facing browser deployment must provide a discoverable desktop launcher
+  when the supported browser is installed, plus a visible, non-terminal way to
+  stop a camera bridge that keeps the physical device open. Both launchers must
+  be installed and removed only by the versioned deployment scripts.
+- Report all detected browsers during deployment. A detected unsupported
+  browser is diagnostic information, not permission to enable or claim support
+  for it.

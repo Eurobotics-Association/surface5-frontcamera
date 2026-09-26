@@ -12,6 +12,7 @@ case "$profile" in
     *) echo 'error: unsafe managed profile path' >&2; exit 2 ;;
 esac
 rm -rf "$profile"
+"$root/scripts/uninstall-user-firefox-camera-launchers.sh"
 "$root/scripts/uninstall-user-hd-camera-bridge.sh"
 "$root/scripts/uninstall-user-camera-recovery.sh"
 printf 'Removed managed Firefox PipeWire integration. Normal Firefox profiles were not changed.\n'

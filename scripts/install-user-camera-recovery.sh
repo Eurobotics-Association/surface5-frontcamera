@@ -16,4 +16,7 @@ install -D -m 644 "$root/systemd/user/$unit" "$destination"
 systemctl --user daemon-reload
 systemctl --user enable "$unit"
 if [ "$start_now" = true ]; then systemctl --user start "$unit"; fi
-systemctl --user --no-pager --full status "$unit"
+# A successfully completed Type=oneshot unit is normally inactive.  Show its
+# state for the operator without converting that expected state into an
+# installation failure.
+systemctl --user --no-pager --full status "$unit" || true

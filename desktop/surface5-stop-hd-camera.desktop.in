@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Stop Surface5 HD Front Camera
+Comment=Release the Surface Pro 5 fixed-HD front camera and turn off its LED
+Exec="@STOPPER@"
+TryExec=@STOPPER@
+Icon=camera-video
+Terminal=false
+Categories=Utility;
+StartupNotify=true

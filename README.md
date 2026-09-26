@@ -49,6 +49,7 @@ capture and desktop tests must run from the normal host user session. See
 - [Stack architecture](docs/architecture.md)
 - [Upstream research and patch audit](docs/research.md)
 - [Diagnostics and test procedure](docs/testing.md)
+- [Firefox desktop deployment](docs/firefox-deployment.md)
 - [Change plan and results](docs/changes.md)
 - [Rollback](docs/rollback.md)
 
@@ -100,15 +101,21 @@ test and by visible 1280x720 video at WebcamTests.
 ```bash
 ./scripts/install-firefox-pipewire.sh
 ./scripts/status-firefox-pipewire.sh
-./scripts/launch-firefox-pipewire.sh https://fr.webcamtests.com/
-./scripts/stop-user-hd-camera-bridge.sh
 ```
 
-At the site, grant permission and select `Surface5_Front_Camera_HD` after the
-labels appear. The installer validates Firefox and required user services,
-recovers the libcamera source, confirms the Camera portal, and fails safely if
-its supported hardware source is absent. Run the local virtual-HD diagnostic
-once after installation or an update before relying on a call. To roll back
+The installer reports Firefox and Brave when present. Firefox is the supported
+path; Brave is detected but left untouched and reported as unsupported. It also
+adds two application-menu entries: **Firefox — Surface5 HD Front Camera** and
+**Stop Surface5 HD Front Camera**. Start Firefox using the first entry, grant
+camera permission, and select `Surface5_Front_Camera_HD` after labels appear.
+Use the second entry after a call to release the camera and turn off its LED.
+
+The installer validates Firefox and required user services, recovers the
+libcamera source, confirms the Camera portal, and fails safely if its supported
+hardware source is absent. Run the local virtual-HD diagnostic once after
+installation or an update before relying on a call. Full prerequisites,
+installation, verification, limits, exact deployed paths, and rollback are in
+[Firefox desktop deployment](docs/firefox-deployment.md). To roll back
 everything it deployed:
 
 ```bash
@@ -118,9 +125,9 @@ everything it deployed:
 This also removes the managed fixed-HD virtual source and the WirePlumber
 recovery unit; normal Firefox profiles remain untouched.
 
-The HD bridge is deliberately not enabled at login. The managed Firefox
-launcher starts it before opening Firefox; after a call, use the stop command
-above to release the camera and turn off its privacy LED.
+The HD bridge is deliberately not enabled at login. The Firefox desktop
+launcher starts it before opening Firefox; the Stop desktop entry releases it
+after a call and turns off its privacy LED.
 
 Brave is not supported on the reference host: normal Brave exposes no usable
 camera, and its PipeWire backend has timed out during device enumeration. The

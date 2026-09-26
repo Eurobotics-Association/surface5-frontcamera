@@ -166,17 +166,18 @@ other-Surface deployment claim.
 ```bash
 ./scripts/install-firefox-pipewire.sh
 ./scripts/status-firefox-pipewire.sh
-./scripts/launch-firefox-pipewire.sh https://fr.webcamtests.com/
 ```
 
-The managed launcher starts the fixed-HD bridge. At WebcamTests, grant the
-Firefox prompt, select `Surface5_Front_Camera_HD`, and click **Tester ma
-webcam**. On the reference host this produced a visible, changing 1280x720
-image. The local `browser-webrtc-test.sh` is the programmatic pixel-flow
-verification control: its virtual-HD mode must report changing, non-black
-`VIRTUAL_HD_FRAME_PIXELS`. After a call, run
-`./scripts/stop-user-hd-camera-bridge.sh` to release the physical camera and
-turn off its LED. Roll back the managed profile and recovery unit with
+The installer detects Firefox and Brave. It configures only Firefox, then
+installs the application-menu entries **Firefox — Surface5 HD Front Camera**
+and **Stop Surface5 HD Front Camera**. The Firefox entry starts the fixed-HD
+bridge. At WebcamTests, grant the Firefox prompt, select
+`Surface5_Front_Camera_HD`, and click **Tester ma webcam**. On the reference
+host this produced a visible, changing 1280x720 image. The local
+`browser-webrtc-test.sh` is the programmatic pixel-flow verification control:
+its virtual-HD mode must report changing, non-black `VIRTUAL_HD_FRAME_PIXELS`.
+Use the Stop entry after a call to release the physical camera and turn off its
+LED. Roll back the managed profile and recovery unit with
 `./scripts/uninstall-firefox-pipewire.sh`.
 
 ## Fixed-HD virtual camera bridge

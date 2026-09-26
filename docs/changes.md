@@ -301,6 +301,27 @@ stop, status, and uninstall were exercised in the host session. This is a
 reference-specific Firefox workaround, not a claim of support for other
 Surface models, other Linux camera pipelines, or Brave.
 
+### Firefox desktop-launcher deployment (2026-09-26)
+
+The Firefox deployment now reports detected Firefox and Brave installations,
+but configures only the verified Firefox path. It installs two project-owned
+application-menu entries: **Firefox — Surface5 HD Front Camera** starts the
+managed profile and fixed-HD bridge, while **Stop Surface5 HD Front Camera**
+stops the bridge and releases the privacy LED. The launch helpers and desktop
+entries are user-owned, checked by the status command, and removed by the
+existing Firefox uninstall command.
+
+During the first full deployment run, the WirePlumber recovery installer
+reported its expected inactive completed one-shot state as an error. That
+installer now reports the state without treating it as a failed install, so the
+top-level Firefox deployment remains idempotent.
+
+The first desktop-entry smoke test also found that invoking the Bash launch
+helper through `/bin/sh` made Dash reject `pipefail`. The entries now execute
+their versioned, executable Bash helpers directly. The corrected Start entry
+was then verified to create `surface5_frontcamera_hd`; the paired Stop entry
+was verified to remove it and release the physical camera.
+
 ### User-session recovery deployment
 
 The repository now provides a user-only one-shot unit, enabled for
