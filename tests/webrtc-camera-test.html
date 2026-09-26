@@ -154,6 +154,9 @@
         }
         const afterFront = await within('ENUMERATE_AFTER', mediaDevices.enumerateDevices(), deviceSummary);
         if (afterFront) render('ok', 'ENUMERATE_AFTER_VIDEOINPUT_COUNT', { count: afterFront.filter(device => device.kind === 'videoinput').length });
+        render('ok', 'STREAM_STOPPING');
+        await stopCurrentStream();
+        render('ok', 'STREAM_STOPPED');
         render('ok', 'TEST_COMPLETE');
         runButton.disabled = false;
         frontButton.disabled = false;
@@ -174,6 +177,9 @@
       } else {
         render('error', 'FRONT_CAMERA_NOT_AVAILABLE_AFTER_PERMISSION');
       }
+      render('ok', 'STREAM_STOPPING');
+      await stopCurrentStream();
+      render('ok', 'STREAM_STOPPED');
       render('ok', 'TEST_COMPLETE');
       runButton.disabled = false;
       frontButton.disabled = false;

@@ -145,7 +145,9 @@ separately. A timeout is recorded distinctly as
 `ENUMERATE_BEFORE_TIMEOUT`, `GETUSERMEDIA_TIMEOUT`, or
 `ENUMERATE_AFTER_TIMEOUT`. The helper stops its own localhost server when
 interrupted and writes only textual HTTP/event logs below the private Pictures
-test directory; it does not retain frames or alter browser profiles.
+test directory; it does not retain frames or alter browser profiles. Each run
+also stops its browser stream before reporting `TEST_COMPLETE`, so it does not
+leave the camera held for a following control.
 
 ## System Firefox PipeWire deployment — experimental
 
