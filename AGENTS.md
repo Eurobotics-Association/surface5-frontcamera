@@ -23,3 +23,18 @@
   not final deployment. Future maintenance tooling must inspect each target
   kernel's native `dw9719` aliases and never override a kernel that already
   exports `i2c:dw9719`; fail safely on API incompatibility.
+- Browser integration is a deployable product feature, never a host-specific
+  hotfix. Any persistent browser, PipeWire, portal, WirePlumber, Firefox, or
+  Flatpak configuration must be installed only through a versioned repository
+  script and have matching status and uninstall/rollback commands.
+- A browser deployment script must be idempotent, validate prerequisites and
+  supported scope before changing anything, use narrowly defined user or
+  system paths, preserve unrelated browser profiles/settings, and document
+  every change it makes. One-off commands, manual preference edits, and
+  untracked profile changes are diagnostic-only and must not be presented as a
+  solution.
+- Before describing browser support as deployable, validate installation from
+  the repository, actual front-camera WebRTC playback, browser restart, and
+  documented rollback. The README must provide a short supported-hardware/OS
+  statement, prerequisites, install, verification, limitations, and uninstall
+  path suitable for another user.
