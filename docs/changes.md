@@ -255,7 +255,7 @@ services, default front source, and true Camera portal property. Those results
 were enumeration/playback-state evidence only and must not be interpreted as
 proof of image-bearing frames.
 
-### Firefox all-black WebcamTests result (2026-09-26)
+### Firefox physical-source all-black WebcamTests result (2026-09-26)
 
 The managed Firefox profile was used at `https://fr.webcamtests.com/`. Firefox
 identified `Built-in Front Camera`, negotiated 1280x720 at 29 FPS, but the site
@@ -274,10 +274,32 @@ This is a PipeWire libcamera-SPA request/buffer failure after camera access is
 already granted, not a Firefox permission failure, missing camera node, or the
 known one-frame OV5693 startup-black condition. PipeWire 1.0.5 and
 `pipewire-libcamera` 1.0.5 on the Ubuntu 24.04 reference stack are now a
-suspected boundary. The Firefox integration remains experimental and must not
-be deployed to other machines until a browser test verifies changing non-black
-pixels. The WebRTC diagnostic now samples in-memory video luminance and frame
-changes so dimensions alone cannot produce a false pass.
+suspected boundary for the physical-source reconfiguration path. The WebRTC
+diagnostic samples in-memory video luminance and frame changes so dimensions
+alone cannot produce a false pass.
+
+### Fixed-HD virtual Firefox result (2026-09-26)
+
+The physical front source has a deterministic format boundary on the reference
+host: the default 640x480 route produces zero-valued frames, while a fixed
+1280x720 route produces moving image data after the known startup frames. A
+user-owned GStreamer/PipeWire bridge was therefore installed as the separate
+camera `Surface5_Front_Camera_HD`. It pins its input to NV12 1280x720 and
+offers an ordinary PipeWire `Video/Source` for WebRTC applications.
+
+The managed Firefox profile's localhost virtual-HD test selected that source,
+reported a live 1280x720 track, and measured three changing, non-black frame
+samples. The operator also selected it at WebcamTests and observed a usable
+1280x720 image. The website reported RGB image data and non-zero brightness;
+its displayed zero-FPS metric is not treated as an authoritative frame-flow
+result because the local in-memory test directly observed changing frames.
+
+The bridge is installed as a static user service, deliberately inactive at
+login. The repository launcher starts it for Firefox; the paired stop command
+releases the physical camera and removes the virtual source. Install, start,
+stop, status, and uninstall were exercised in the host session. This is a
+reference-specific Firefox workaround, not a claim of support for other
+Surface models, other Linux camera pipelines, or Brave.
 
 ### User-session recovery deployment
 

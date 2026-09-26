@@ -153,15 +153,15 @@ leave the camera held for a following control.
 It is an investigation control, not a browser workaround: it determines
 whether Firefox can consume the currently known-good native/PipeWire mode.
 
-## System Firefox PipeWire deployment — experimental
+## System Firefox PipeWire deployment (reference-specific)
 
-The experimental path uses the system `firefox` executable, never a portable
-browser or a normal Firefox profile. It installs the PipeWire preference only
-in `~/.local/share/surface5-frontcamera/firefox-pipewire-profile`, enables the
+This path uses the system `firefox` executable, never a portable browser or a
+normal Firefox profile. It installs the PipeWire preference only in
+`~/.local/share/surface5-frontcamera/firefox-pipewire-profile`, enables the
 repository's user-session recovery, and verifies the front source plus Camera
-portal before reporting integration readiness. It does not validate image
-pixels and must not be described as a deployable browser-camera solution until
-the local diagnostic reports changing, non-black frames.
+portal before reporting integration readiness. It is verified only for the
+reference Surface Pro 5 / Ubuntu-or-Zorin stack; it is not a generic Debian or
+other-Surface deployment claim.
 
 ```bash
 ./scripts/install-firefox-pipewire.sh
@@ -169,11 +169,14 @@ the local diagnostic reports changing, non-black frames.
 ./scripts/launch-firefox-pipewire.sh https://fr.webcamtests.com/
 ```
 
-At WebcamTests, grant the Firefox prompt, select `Built-in Front Camera`, and
-click **Tester ma webcam**. The current reference host reaches this point but
-WebcamTests receives all-black 1280x720 frames after repeated resolution
-negotiation. The local `browser-webrtc-test.sh` is the programmatic pixel-flow
-verification control. Roll back the managed profile and recovery unit with
+The managed launcher starts the fixed-HD bridge. At WebcamTests, grant the
+Firefox prompt, select `Surface5_Front_Camera_HD`, and click **Tester ma
+webcam**. On the reference host this produced a visible, changing 1280x720
+image. The local `browser-webrtc-test.sh` is the programmatic pixel-flow
+verification control: its virtual-HD mode must report changing, non-black
+`VIRTUAL_HD_FRAME_PIXELS`. After a call, run
+`./scripts/stop-user-hd-camera-bridge.sh` to release the physical camera and
+turn off its LED. Roll back the managed profile and recovery unit with
 `./scripts/uninstall-firefox-pipewire.sh`.
 
 ## Fixed-HD virtual camera bridge
@@ -197,9 +200,11 @@ browser profile, and has a paired status/uninstall path:
 
 Use it only on the validated Surface Pro 5 reference hardware. Select the
 virtual source explicitly in the browser or conferencing application; do not
-assume that a browser will prefer it over the physical cameras. Treat it as
-experimental until installation, browser restart, and changing-pixel WebRTC
-validation all pass.
+assume that a browser will prefer it over the physical cameras. The reference
+Firefox control passed after installation: `Surface5_Front_Camera_HD` delivered
+changing, non-black 1280x720 frames in the local WebRTC diagnostic and visible
+video at WebcamTests. Re-run that control after package updates or before
+relying on a different application.
 
 The bridge is installed but deliberately inactive at login because a fixed-HD
 source holds the physical camera open. The managed Firefox launcher starts it

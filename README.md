@@ -24,13 +24,17 @@ completed the CIO2 graph, exposed OV5693 and `Internal front camera`, produced
 1280x720 NV12 frame data, and completed five independent start/stop cycles.
 No kernel switch or reboot was required.
 
-This is not yet a claim that the camera is fully solved. The recurring
-`frame-000001` is now identified as an all-zero startup frame, not frozen
-output; subsequent frames vary normally. Cheese displays usable live front
-video after manual selection. WirePlumber initially skipped media devices after
-permission-denied discovery, but a user-service restart now exposes both
-libcamera sources and makes the Camera portal present. Brave retesting and
-automatic login-time recovery remain separate work.
+The recurring `frame-000001` is now identified as an all-zero startup frame,
+not frozen output; subsequent 1280x720 frames vary normally. Cheese displays
+usable live front video after manual selection. WirePlumber initially skipped
+media devices after permission-denied discovery, but a user-service restart
+now exposes both libcamera sources and makes the Camera portal present.
+
+Firefox WebRTC is verified on the reference Surface Pro 5 when it uses the
+repository-managed fixed-HD virtual source. The ordinary 640x480 physical
+camera path remains black on this machine, so applications must select
+`Surface5_Front_Camera_HD`, not `Built-in Front Camera`. Brave is a separate,
+unresolved browser-backend issue.
 
 A subsequent read-only snapshot found the VCM still bound but no media/video
 nodes in the restricted agent execution namespace. That namespace overlays
@@ -77,21 +81,21 @@ them by default; use `--keep` only when inspecting a local, private capture.
 and records textual browser API events under the same private test directory.
 It neither records camera frames nor changes a browser profile.
 
-## Firefox PipeWire integration — experimental, not yet deployable
+## Firefox PipeWire fixed-HD integration (reference-specific)
 
-The repository can deploy an isolated Firefox profile for investigation on the
-verified Surface Pro 5 / Ubuntu-or-Zorin reference stack. It does not modify a
-normal Firefox profile and installs the narrowly scoped WirePlumber
-graphical-session recovery. It is **not a browser-camera solution for other
-machines yet**: on the reference host, WebcamTests can open the camera but
-currently receives all-black frames after its repeated resolution negotiation.
+The repository deploys an isolated Firefox profile and a user-owned fixed-HD
+PipeWire source on the verified Surface Pro 5 / Ubuntu-or-Zorin reference
+stack. It does not modify a normal Firefox profile. This is a tested
+workaround for this hardware and stack, **not a general installer for other
+Surface models or Debian/Ubuntu computers**. Their sensors, libcamera
+pipelines, PipeWire versions, and format behaviour must be validated first.
 
 The current reference host has a verified format boundary: direct libcamera
 and PipeWire produce changing front-camera pixels at 1280x720, but their
-default 640x480 mode is all black. The installer includes an experimental
-user-level fixed-HD virtual source named `Surface5_Front_Camera_HD`. It is
-separate from the physical camera; select it in an application only after the
-deployment validation described in `docs/testing.md` has passed.
+default 640x480 mode is all black. The installer adds the user-level virtual
+source `Surface5_Front_Camera_HD`, which holds the physical source at 1280x720.
+Firefox has been verified with this source by the localhost changing-pixel
+test and by visible 1280x720 video at WebcamTests.
 
 ```bash
 ./scripts/install-firefox-pipewire.sh
@@ -100,12 +104,12 @@ deployment validation described in `docs/testing.md` has passed.
 ./scripts/stop-user-hd-camera-bridge.sh
 ```
 
-At the site, select `Built-in Front Camera` after permission is granted. The
-installer validates Firefox and required user services, recovers the libcamera
-source, confirms the Camera portal, and fails safely if its supported hardware
-source is absent. It does not claim that usable camera pixels are flowing; use
-the local diagnostic below before relying on it. To roll back everything it
-deployed:
+At the site, grant permission and select `Surface5_Front_Camera_HD` after the
+labels appear. The installer validates Firefox and required user services,
+recovers the libcamera source, confirms the Camera portal, and fails safely if
+its supported hardware source is absent. Run the local virtual-HD diagnostic
+once after installation or an update before relying on a call. To roll back
+everything it deployed:
 
 ```bash
 ./scripts/uninstall-firefox-pipewire.sh
@@ -118,8 +122,9 @@ The HD bridge is deliberately not enabled at login. The managed Firefox
 launcher starts it before opening Firefox; after a call, use the stop command
 above to release the camera and turn off its privacy LED.
 
-Brave is not supported: normal Brave exposes no usable camera, and its
-experimental PipeWire backend times out during device enumeration.
+Brave is not supported on the reference host: normal Brave exposes no usable
+camera, and its PipeWire backend has timed out during device enumeration. The
+Firefox bridge does not claim to fix Brave.
 
 After the current kernel has passed the reviewed controlled test, the guarded
 maintenance commands are:
