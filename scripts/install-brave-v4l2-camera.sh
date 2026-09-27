@@ -42,25 +42,29 @@ grep -Fq 'Card type        : Surface5_Front_Camera_HD' <<<"$node" || { echo 'err
 wpctl status -n | grep -Fq 'libcamera_input.__SB_.PCI0.I2C2.CAMF' || { echo 'error: physical front PipeWire source is absent' >&2; exit 1; }
 
 launcher="$launcher_dir/brave-surface5-hd-camera"
-stopper="$launcher_dir/stop-brave-surface5-hd-camera"
+stopper="$launcher_dir/stop-surface5-hd-camera"
 desktop_launcher="$applications/surface5-brave-v4l2-camera.desktop"
-desktop_stopper="$applications/surface5-stop-brave-v4l2-camera.desktop"
+desktop_stopper="$applications/surface5-stop-hd-camera.desktop"
 shortcut_launcher="$desktop_dir/Brave — Surface5 HD Front Camera.desktop"
-shortcut_stopper="$desktop_dir/Stop Brave Surface5 HD Front Camera.desktop"
-if [ -f "$manifest" ] && grep -Fxq "DEPLOYMENT_PRODUCT=$DEPLOYMENT_PRODUCT" "$manifest" && grep -Fxq "DEPLOYMENT_VERSION=$DEPLOYMENT_VERSION" "$manifest" && cmp -s "$root/systemd/user/$unit" "$unit_destination" && cmp -s "$root/scripts/desktop-launch-brave-v4l2-camera.sh" "$launcher" && cmp -s "$root/scripts/desktop-stop-brave-v4l2-camera.sh" "$stopper" && grep -Fxq 'Categories=Network;' "$desktop_stopper" && [ -x "$shortcut_launcher" ] && [ -x "$shortcut_stopper" ] && grep -Fxq 'Categories=Network;' "$shortcut_stopper"; then
+shortcut_stopper="$desktop_dir/Stop Surface5 HD Front Camera.desktop"
+legacy_stopper="$launcher_dir/stop-brave-surface5-hd-camera"
+legacy_desktop_stopper="$applications/surface5-stop-brave-v4l2-camera.desktop"
+legacy_shortcut_stopper="$desktop_dir/Stop Brave Surface5 HD Front Camera.desktop"
+if [ -f "$manifest" ] && grep -Fxq "DEPLOYMENT_PRODUCT=$DEPLOYMENT_PRODUCT" "$manifest" && grep -Fxq "DEPLOYMENT_VERSION=$DEPLOYMENT_VERSION" "$manifest" && cmp -s "$root/systemd/user/$unit" "$unit_destination" && cmp -s "$root/scripts/desktop-launch-brave-v4l2-camera.sh" "$launcher" && cmp -s "$root/scripts/desktop-stop-surface5-hd-camera.sh" "$stopper" && grep -Fxq 'Categories=Network;' "$desktop_stopper" && [ -x "$shortcut_launcher" ] && [ -x "$shortcut_stopper" ] && grep -Fxq 'Categories=Network;' "$shortcut_stopper" && [ ! -e "$legacy_stopper" ] && [ ! -e "$legacy_desktop_stopper" ] && [ ! -e "$legacy_shortcut_stopper" ]; then
     echo "DEPLOYMENT=$DEPLOYMENT_PRODUCT $DEPLOYMENT_VERSION already-current; no services or files changed."
     exit 0
 fi
 install -D -m 644 "$root/systemd/user/$unit" "$unit_destination"
 install -D -m 755 "$root/scripts/desktop-launch-brave-v4l2-camera.sh" "$launcher"
-install -D -m 755 "$root/scripts/desktop-stop-brave-v4l2-camera.sh" "$stopper"
+install -D -m 755 "$root/scripts/desktop-stop-surface5-hd-camera.sh" "$stopper"
 install -D -m 644 "$root/desktop/surface5-brave-v4l2-camera.desktop.in" "$desktop_launcher"
-install -D -m 644 "$root/desktop/surface5-stop-brave-v4l2-camera.desktop.in" "$desktop_stopper"
+install -D -m 644 "$root/desktop/surface5-stop-hd-camera.desktop.in" "$desktop_stopper"
 sed "s|@LAUNCHER@|$launcher|g" "$desktop_launcher" > "$desktop_launcher.tmp" && mv "$desktop_launcher.tmp" "$desktop_launcher"
 sed "s|@STOPPER@|$stopper|g" "$desktop_stopper" > "$desktop_stopper.tmp" && mv "$desktop_stopper.tmp" "$desktop_stopper"
 chmod 644 "$desktop_launcher" "$desktop_stopper"
 install -D -m 755 "$desktop_launcher" "$shortcut_launcher"
 install -D -m 755 "$desktop_stopper" "$shortcut_stopper"
+rm -f "$legacy_stopper" "$legacy_desktop_stopper" "$legacy_shortcut_stopper"
 command -v gio >/dev/null 2>&1 && { gio set "$shortcut_launcher" metadata::trusted true 2>/dev/null || true; gio set "$shortcut_stopper" metadata::trusted true 2>/dev/null || true; }
 systemctl --user daemon-reload
 systemctl --user disable --now "$unit" 2>/dev/null || true

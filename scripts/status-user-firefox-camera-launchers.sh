@@ -29,7 +29,7 @@ for item in "$launcher" "$stopper" "$desktop_launcher" "$desktop_stopper" "$desk
     fi
 done
 if [ -x "$launcher" ] && grep -Fq "$launcher" "$desktop_launcher" 2>/dev/null && [ -x "$stopper" ] && grep -Fq "$stopper" "$desktop_stopper" 2>/dev/null && grep -Fxq 'Categories=Network;' "$desktop_stopper" 2>/dev/null && [ -x "$desktop_shortcut_launcher" ] && [ -x "$desktop_shortcut_stopper" ] && grep -Fxq 'Categories=Network;' "$desktop_shortcut_stopper" 2>/dev/null; then
-    if cmp -s "$root/scripts/desktop-launch-firefox-hd-camera.sh" "$launcher" && cmp -s "$root/scripts/desktop-stop-firefox-hd-camera.sh" "$stopper"; then
+    if cmp -s "$root/scripts/desktop-launch-firefox-hd-camera.sh" "$launcher" && cmp -s "$root/scripts/desktop-stop-surface5-hd-camera.sh" "$stopper"; then
         [ "$quiet" = true ] || echo 'FIREFOX_DESKTOP_LAUNCHERS=ready-current'
         exit 0
     else

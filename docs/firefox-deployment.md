@@ -69,10 +69,8 @@ site, grant Firefox's camera permission and select
 call: its normal 640x480 route is the known-black path on this reference host.
 
 When the call is finished, open **Stop Surface5 HD Front Camera** from the
-application menu. It stops the bridge, removes the virtual source, releases
-the physical camera, and turns off its privacy LED. Closing a browser tab alone
-does not stop a running bridge, by design: a virtual PipeWire source is a
-separate camera client.
+application menu. It stops every project-owned camera bridge, releases the
+physical camera, and turns off its privacy LED without closing a browser.
 
 ## Verify and troubleshoot
 

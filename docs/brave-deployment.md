@@ -24,8 +24,8 @@ Brave Start/Stop entries, but keeps the camera off until you start it.
 
 Open **Brave — Surface5 HD Front Camera** from the Internet menu or the Desktop
 shortcut. On the video-call site, approve the camera request and select
-**Surface5_Front_Camera_HD**. Use **Stop Brave Surface5 HD Front Camera** after
-the call to release the physical camera and turn off its LED.
+**Surface5_Front_Camera_HD**. Use the shared **Stop Surface5 HD Front Camera**
+entry after the call to release the physical camera and turn off its LED.
 
 ## Check and remove
 

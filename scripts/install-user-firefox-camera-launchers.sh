@@ -27,7 +27,7 @@ for command in systemctl systemd-run wpctl xdg-user-dir; do
 done
 
 install -D -m 755 "$root/scripts/desktop-launch-firefox-hd-camera.sh" "$launcher"
-install -D -m 755 "$root/scripts/desktop-stop-firefox-hd-camera.sh" "$stopper"
+install -D -m 755 "$root/scripts/desktop-stop-surface5-hd-camera.sh" "$stopper"
 install -D -m 644 "$root/desktop/surface5-firefox-hd-camera.desktop.in" "$desktop_launcher"
 install -D -m 644 "$root/desktop/surface5-stop-hd-camera.desktop.in" "$desktop_stopper"
 while IFS= read -r line || [ -n "$line" ]; do
