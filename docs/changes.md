@@ -458,3 +458,8 @@ removes the old guarded loopback policy as administrator. The profile may hold
 browser state and is therefore permanently deleted only by this explicit mode;
 normal Firefox profiles are out of scope. The root step refuses to unload a
 loopback camera if `/dev/video20` has a different owner label.
+
+Version `2.2.260927` makes both root rollback paths verify that a successful
+`modprobe -r` actually removed `v4l2loopback`; legacy rollback also verifies
+that `/dev/video20` vanished. A cleanup is not reported complete if the module
+or project device survives.

@@ -150,7 +150,10 @@ if [ "$mode" = rollback ]; then
     systemctl --global disable surface5-frontcamera-v4l2-bridge.service 2>/dev/null || true
     rm -f /etc/modprobe.d/surface5-frontcamera-v4l2loopback.conf /etc/modules-load.d/surface5-frontcamera-v4l2loopback.conf /etc/systemd/user/surface5-frontcamera-v4l2-bridge.service /usr/share/applications/surface5-firefox-v4l2-camera.desktop /usr/share/applications/surface5-brave-v4l2-camera.desktop /usr/share/applications/surface5-stop-hd-camera.desktop /usr/share/applications/surface5-camera-diagnostic.desktop /etc/surface5-frontcamera/v4l2.env
     rm -rf /usr/lib/surface5-frontcamera
-    modprobe -r v4l2loopback 2>/dev/null || true
+    if lsmod | grep -q '^v4l2loopback '; then
+        modprobe -r v4l2loopback || { echo 'error: v4l2loopback is in use; it was not unloaded' >&2; exit 1; }
+        lsmod | grep -q '^v4l2loopback ' && { echo 'error: v4l2loopback remained loaded after rollback' >&2; exit 1; }
+    fi
     rmdir /etc/surface5-frontcamera 2>/dev/null || true
     echo 'DEPLOYMENT=system rollback complete; user-level shortcuts, if installed, remain owned by their users.'
     exit 0
@@ -167,7 +170,9 @@ if [ "$mode" = legacy-rollback ]; then
     rm -f /etc/modprobe.d/surface5-frontcamera-v4l2loopback.conf /etc/modules-load.d/surface5-frontcamera-v4l2loopback.conf /etc/surface5-frontcamera/brave-v4l2.env /etc/systemd/user/surface5-frontcamera-brave-v4l2-bridge.service
     if lsmod | grep -q '^v4l2loopback '; then
         modprobe -r v4l2loopback || { echo 'error: v4l2loopback is still in use; stop the project bridge before retrying' >&2; exit 1; }
+        lsmod | grep -q '^v4l2loopback ' && { echo 'error: v4l2loopback remained loaded after legacy rollback' >&2; exit 1; }
     fi
+    [ ! -e /dev/video20 ] || { echo 'error: /dev/video20 remained after legacy rollback' >&2; exit 1; }
     rmdir /etc/surface5-frontcamera 2>/dev/null || true
     echo 'LEGACY_DEPLOYMENT=system rollback complete; old project loopback policy removed.'
     exit 0
