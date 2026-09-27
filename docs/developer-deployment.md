@@ -51,6 +51,12 @@ or rewriting files. Repair drift only through the installer. Never overwrite a
 record for another product. `--rollback` stops the bridge and deletes only its
 scope; system rollback leaves other users' Desktop state alone.
 
+`--legacy-rollback` is the pre-install cleanup for retired Firefox PipeWire and
+browser-specific Brave V4L2 deployments. Run it once as each old graphical
+user, then once as an administrator for old system policy. It permanently
+removes the project-created isolated profile, which may contain browser state;
+scope checks must remain exact. Never replace it with an untracked `rm`.
+
 The native-module guard accepts only
 `/lib/modules/<running-kernel>/kernel/v4l2loopback/…`; never install a DKMS
 substitute automatically. Do not add world-writable nodes, permanent ACLs,

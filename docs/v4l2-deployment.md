@@ -82,3 +82,20 @@ can remove that user's optional shortcuts with:
 
 Stop calls first. If another application uses the module, it may remain loaded
 until released; no unrelated application is forcibly stopped.
+
+## Start from a clean previous deployment
+
+If this computer used the retired Firefox PipeWire or old Brave-specific
+deployment, remove it before testing a fresh installation:
+
+```bash
+./scripts/install-v4l2-camera.sh --user --legacy-rollback
+./scripts/install-v4l2-camera.sh --system --legacy-rollback
+```
+
+The first command runs in the affected graphical user's session and permanently
+deletes only the old project-created isolated Firefox profile, units, launchers
+and traces. That profile can contain browsing state, but is not the normal
+Firefox profile. The second command requests administrator authentication and
+removes only the old project V4L2 policy/module. It refuses to unload a
+loopback device owned by something else.

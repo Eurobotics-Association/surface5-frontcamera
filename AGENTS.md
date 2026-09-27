@@ -41,6 +41,11 @@ deployment is retired; never restore it as a hotfix.
   unrelated profiles/settings and keep product records only in
   `/etc/surface5-frontcamera/v4l2.env` and optionally
   `~/.local/share/surface5-frontcamera/v4l2-deployment.env`.
+- `--legacy-rollback` is the only supported way to remove the retired
+  PipeWire/old-Brave deployment before a clean test. Its user scope may delete
+  the project-created isolated Firefox profile, which can contain browser
+  state; it must never target a normal profile. Its system scope must refuse
+  to unload a loopback device owned by another product.
 - A release needs repository install, repeat-install no-op, actual changing
   non-black 1280x720 WebRTC frames in Firefox and Brave, real-site visible
   video, shared Stop/LED release, and scoped rollback.

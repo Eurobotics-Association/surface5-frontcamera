@@ -10,12 +10,14 @@ scope=system
 mode=install
 usage() {
     cat <<EOF
-Usage: $0 [--system|--user] [--status|--rollback|--version]
+Usage: $0 [--system|--user] [--status|--rollback|--legacy-rollback|--version]
 
 Default --system installs the native V4L2 policy, global menu entries and
 diagnostic assets for every desktop user.  It asks for sudo when needed.
 --user installs only current-user launchers/shortcuts and needs an existing
 system V4L2 policy.
+--legacy-rollback removes only the retired project PipeWire/old-Brave V4L2
+deployment in the selected scope, before a clean new installation.
 EOF
 }
 for arg in "$@"; do
@@ -24,6 +26,7 @@ for arg in "$@"; do
         --user) scope=user ;;
         --status) mode=status ;;
         --rollback) mode=rollback ;;
+        --legacy-rollback) mode=legacy-rollback ;;
         --version) mode=version ;;
         --help) usage; exit 0 ;;
         *) usage >&2; exit 2 ;;
@@ -64,6 +67,17 @@ system_current() {
         [ -c /dev/video20 ]
 }
 
+retire_legacy_user() {
+    user_paths
+    # The old isolated profile may contain browser state. It was created only
+    # by the previous project deployment; never broaden this target.
+    case "$state_dir/firefox-pipewire-profile" in "$data_home/surface5-frontcamera/firefox-pipewire-profile") ;; *) echo 'error: unsafe legacy profile path' >&2; exit 2;; esac
+    systemctl --user disable --now surface5-frontcamera-hd-bridge.service surface5-frontcamera-brave-v4l2-bridge.service surface5-wireplumber-camera-recovery.service 2>/dev/null || true
+    rm -f "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/surface5-frontcamera-hd-bridge.service" "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/surface5-frontcamera-brave-v4l2-bridge.service" "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/surface5-wireplumber-camera-recovery.service" "$state_dir/bin/firefox-surface5-hd-camera" "$state_dir/bin/brave-surface5-hd-camera" "$state_dir/bin/stop-brave-surface5-hd-camera" "$state_dir/bin/stop-surface5-hd-camera" "$applications/surface5-firefox-hd-camera.desktop" "$applications/surface5-brave-v4l2-camera.desktop" "$applications/surface5-stop-brave-v4l2-camera.desktop" "$applications/surface5-stop-hd-camera.desktop" "$desktop_dir/Firefox — Surface5 HD Front Camera.desktop" "$desktop_dir/Brave — Surface5 HD Front Camera.desktop" "$desktop_dir/Stop Brave Surface5 HD Front Camera.desktop" "$desktop_dir/Stop Surface5 HD Front Camera.desktop" "$state_dir/deployment.env" "$state_dir/brave-v4l2-deployment.env"
+    rm -rf "$state_dir/firefox-pipewire-profile"
+    systemctl --user daemon-reload
+}
+
 install_user() {
     user_paths
     command -v systemctl >/dev/null && command -v systemd-run >/dev/null && command -v v4l2-ctl >/dev/null && command -v xdg-user-dir >/dev/null || { echo 'error: required user-session tools are missing' >&2; exit 1; }
@@ -72,14 +86,10 @@ install_user() {
         echo "DEPLOYMENT=$DEPLOYMENT_PRODUCT $DEPLOYMENT_VERSION user already-current; no files or services changed."
         return
     fi
-    # Retire only paths owned by the superseded PipeWire product.  Normal
-    # Firefox/Brave profiles and every non-project desktop item stay intact.
     if [ -e "$state_dir/firefox-pipewire-profile" ] || [ -e "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/surface5-frontcamera-hd-bridge.service" ]; then
         echo 'Migrating retired project PipeWire integration: removing only its isolated profile, units, launchers and trace.'
     fi
-    systemctl --user disable --now surface5-frontcamera-hd-bridge.service surface5-frontcamera-brave-v4l2-bridge.service surface5-wireplumber-camera-recovery.service 2>/dev/null || true
-    rm -f "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/surface5-frontcamera-hd-bridge.service" "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/surface5-frontcamera-brave-v4l2-bridge.service" "${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user/surface5-wireplumber-camera-recovery.service" "$state_dir/bin/firefox-surface5-hd-camera" "$state_dir/bin/brave-surface5-hd-camera" "$state_dir/bin/stop-brave-surface5-hd-camera" "$applications/surface5-firefox-hd-camera.desktop" "$applications/surface5-stop-brave-v4l2-camera.desktop" "$desktop_dir/Firefox — Surface5 HD Front Camera.desktop" "$desktop_dir/Brave — Surface5 HD Front Camera.desktop" "$desktop_dir/Stop Brave Surface5 HD Front Camera.desktop" "$state_dir/deployment.env" "$state_dir/brave-v4l2-deployment.env"
-    rm -rf "$state_dir/firefox-pipewire-profile"
+    retire_legacy_user
     mkdir -p "$state_dir/bin"
     install -D -m 644 "$root/systemd/user/surface5-frontcamera-v4l2-bridge.service" "$user_unit"
     install -D -m 755 "$root/scripts/desktop-launch-v4l2-browser.sh" "$state_dir/bin/launch-v4l2-browser"
@@ -109,7 +119,16 @@ rollback_user() {
 }
 
 if [ "$scope" = user ]; then
-    if [ "$mode" = rollback ]; then rollback_user; echo 'DEPLOYMENT=user rollback complete.'; else install_user; echo "DEPLOYMENT=$DEPLOYMENT_PRODUCT $DEPLOYMENT_VERSION user installed-or-repaired."; fi
+    if [ "$mode" = rollback ]; then
+        rollback_user
+        echo 'DEPLOYMENT=user rollback complete.'
+    elif [ "$mode" = legacy-rollback ]; then
+        retire_legacy_user
+        echo 'LEGACY_DEPLOYMENT=user rollback complete; retired project browser integration removed.'
+    else
+        install_user
+        echo "DEPLOYMENT=$DEPLOYMENT_PRODUCT $DEPLOYMENT_VERSION user installed-or-repaired."
+    fi
     exit 0
 fi
 
@@ -117,6 +136,9 @@ if [ "$(id -u)" -ne 0 ]; then
     echo 'Preparing system-wide Surface5 HD camera integration; sudo may request the administrator password.'
     if [ "$mode" = rollback ]; then
         exec sudo -- "$0" --system --rollback
+    fi
+    if [ "$mode" = legacy-rollback ]; then
+        exec sudo -- "$0" --system --legacy-rollback
     fi
     exec sudo -- "$0" --system
 fi
@@ -131,6 +153,23 @@ if [ "$mode" = rollback ]; then
     modprobe -r v4l2loopback 2>/dev/null || true
     rmdir /etc/surface5-frontcamera 2>/dev/null || true
     echo 'DEPLOYMENT=system rollback complete; user-level shortcuts, if installed, remain owned by their users.'
+    exit 0
+fi
+if [ "$mode" = legacy-rollback ]; then
+    if [ -f /etc/surface5-frontcamera/v4l2.env ]; then
+        echo 'error: the current V4L2 product is installed; use --rollback instead of legacy rollback' >&2
+        exit 1
+    fi
+    if [ -c /dev/video20 ]; then
+        label=$(udevadm info --query=property --name=/dev/video20 2>/dev/null | sed -n 's/^ID_V4L_PRODUCT=//p')
+        [ "$label" = Surface5_Front_Camera_HD ] || { echo "error: refusing to unload v4l2loopback; /dev/video20 belongs to ${label:-unknown}" >&2; exit 1; }
+    fi
+    rm -f /etc/modprobe.d/surface5-frontcamera-v4l2loopback.conf /etc/modules-load.d/surface5-frontcamera-v4l2loopback.conf /etc/surface5-frontcamera/brave-v4l2.env /etc/systemd/user/surface5-frontcamera-brave-v4l2-bridge.service
+    if lsmod | grep -q '^v4l2loopback '; then
+        modprobe -r v4l2loopback || { echo 'error: v4l2loopback is still in use; stop the project bridge before retrying' >&2; exit 1; }
+    fi
+    rmdir /etc/surface5-frontcamera 2>/dev/null || true
+    echo 'LEGACY_DEPLOYMENT=system rollback complete; old project loopback policy removed.'
     exit 0
 fi
 kernel=$(uname -r)

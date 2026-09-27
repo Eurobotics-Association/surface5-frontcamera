@@ -448,3 +448,13 @@ normal browser profile. The installed diagnostic is now a required maintenance
 control: it starts a transient server which survives its launcher shell,
 records only textual logs beneath the private Pictures test directory, and
 proves moving frames rather than mere enumeration.
+
+### Clean legacy rollback (2026-09-27)
+
+Version `2.1.260927` adds a deliberate `--legacy-rollback` mode before a clean
+installation test. It removes the retired project-owned user units, launchers,
+traces and isolated Firefox profile from the affected graphical user, then
+removes the old guarded loopback policy as administrator. The profile may hold
+browser state and is therefore permanently deleted only by this explicit mode;
+normal Firefox profiles are out of scope. The root step refuses to unload a
+loopback camera if `/dev/video20` has a different owner label.
