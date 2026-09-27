@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Brave — Surface5 HD Front Camera
+Comment=Start Brave with the Surface Pro 5 fixed-HD front camera
+Exec=@LAUNCHER@ brave
+TryExec=@LAUNCHER@
+Icon=brave-browser
+Terminal=false
+Categories=Network;
+StartupWMClass=brave-browser
+StartupNotify=true

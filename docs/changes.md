@@ -463,3 +463,8 @@ Version `2.2.260927` makes both root rollback paths verify that a successful
 `modprobe -r` actually removed `v4l2loopback`; legacy rollback also verifies
 that `/dev/video20` vanished. A cleanup is not reported complete if the module
 or project device survives.
+
+Version `2.2.260928` restores the Brave V4L2 launcher template accidentally
+omitted from the unified deployment. The installer now validates every source
+asset needed for a system deployment before it requests `sudo` or changes a
+module policy, so an incomplete GitHub archive fails without a partial install.

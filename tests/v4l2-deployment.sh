@@ -15,5 +15,8 @@ grep -Fq 'remained loaded after legacy rollback' "$root/scripts/install-v4l2-cam
 grep -Fq 'browser-webrtc-server.py' "$root/scripts/install-v4l2-camera.sh"
 grep -Fq 'archive/refs/heads' "$root/scripts/install-from-github.sh"
 grep -Fq 'surface5-frontcamera-v4l2-bridge.service' "$root/scripts/desktop-stop-surface5-hd-camera.sh"
+test -f "$root/desktop/surface5-brave-v4l2-camera.desktop.in"
+grep -Fxq 'Exec=@LAUNCHER@ brave' "$root/desktop/surface5-brave-v4l2-camera.desktop.in"
+grep -Fq 'incomplete deployment source; missing' "$root/scripts/install-v4l2-camera.sh"
 grep -Fq 'allBlack:false' "$root/docs/v4l2-deployment.md"
 echo 'V4L2 deployment static checks passed'

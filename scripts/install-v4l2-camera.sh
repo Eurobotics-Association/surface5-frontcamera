@@ -52,6 +52,28 @@ status() {
 }
 if [ "$mode" = status ]; then status; exit 0; fi
 
+# Validate the complete source bundle before requesting sudo or modifying a
+# user/system deployment.  The GitHub bootstrap deliberately downloads one
+# archive, so a missing launcher asset must fail cleanly rather than leave a
+# partially installed module policy.
+if [ "$mode" = install ]; then
+    for asset in \
+        config/modprobe/surface5-frontcamera-v4l2loopback.conf \
+        config/modules-load.d/surface5-frontcamera-v4l2loopback.conf \
+        systemd/user/surface5-frontcamera-v4l2-bridge.service \
+        scripts/desktop-launch-v4l2-browser.sh \
+        scripts/desktop-stop-surface5-hd-camera.sh \
+        scripts/launch-v4l2-camera-diagnostic.sh \
+        tests/webrtc-camera-test.html \
+        tests/browser-webrtc-server.py \
+        desktop/surface5-firefox-v4l2-camera.desktop.in \
+        desktop/surface5-brave-v4l2-camera.desktop.in \
+        desktop/surface5-stop-hd-camera.desktop.in \
+        desktop/surface5-camera-diagnostic.desktop.in; do
+        [ -f "$root/$asset" ] || { echo "error: incomplete deployment source; missing $asset" >&2; exit 1; }
+    done
+fi
+
 system_current() {
     [ -f /etc/surface5-frontcamera/v4l2.env ] &&
         grep -Fxq "DEPLOYMENT_PRODUCT=$DEPLOYMENT_PRODUCT" /etc/surface5-frontcamera/v4l2.env &&
