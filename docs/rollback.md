@@ -1,67 +1,37 @@
 # Rollback
 
-## Current investigation state
+## Browser V4L2 deployment
 
-The current host may have one user-owned Firefox/session integration. It does
-not change a kernel module, device ACL, global configuration, browser package,
-or a normal Firefox profile.
-
-To remove the managed Firefox PipeWire integration and graphical-session
-WirePlumber recovery unit:
+Stop calls first, then an administrator removes the all-user browser
+integration from this checkout:
 
 ```bash
-cd /home/aev/Github/surface5-frontcamera
-./scripts/install-firefox-pipewire.sh --rollback
+./scripts/install-v4l2-camera.sh --rollback
 ```
 
-`./scripts/uninstall-firefox-pipewire.sh` remains the equivalent explicit
-uninstall command.
+The helper requests `sudo` where needed. It stops the project V4L2 bridge,
+removes project modprobe/modules-load policy, global user unit, launcher and
+diagnostic assets, global menu entries and its product trace. It attempts to
+unload `v4l2loopback`, but leaves it if another application is using it. It
+does not remove Firefox, Brave, normal browser profiles, camera drivers, or
+personal test logs.
 
-This removes only the managed profile at
-`~/.local/share/surface5-frontcamera/firefox-pipewire-profile` and the
-repository's one-shot WirePlumber recovery unit. It does not remove Firefox,
-touch a normal Firefox profile, restart PipeWire, or alter device access.
-
-It also removes the project-owned **Firefox — Surface5 HD Front Camera** and
-**Stop Surface5 HD Front Camera** application-menu entries plus their launch
-helpers, and removes their matching Desktop shortcuts. If Firefox was started
-by the project launcher, rollback stops that project-owned transient Firefox
-service first. It removes the project deployment trace at
-`~/.local/share/surface5-frontcamera/deployment.env`. No normal desktop entries
-are changed.
-
-It also stops and removes the user-level `surface5-frontcamera-hd-bridge`
-service and its `Surface5_Front_Camera_HD` virtual source. To roll back only
-that bridge while retaining the managed Firefox profile and WirePlumber
-recovery unit, use:
+Desktop shortcuts are user-owned and therefore not removed by an administrator
+acting for all users. Their owner removes optional user components with:
 
 ```bash
-cd /home/aev/Github/surface5-frontcamera
-./scripts/uninstall-user-hd-camera-bridge.sh
+./scripts/install-v4l2-camera.sh --user --rollback
 ```
-
-For a non-destructive temporary release of the camera while keeping the bridge
-installed, use `./scripts/stop-user-hd-camera-bridge.sh`.
 
 ## DW9719 external-module rollback
 
-The only proposed system change targets `7.0.0-31-generic` and places a
-reviewed `dw9719.ko` in `/lib/modules/$(uname -r)/updates/dkms/`. To return to
-the packaged Ubuntu module:
+The controlled `7.0.0-31-generic` external module can return to the packaged
+driver with:
 
 ```bash
-cd /home/aev/Github/surface5-frontcamera
 sudo ./scripts/uninstall-dw9719-7.0.sh
 sudo reboot
 ```
 
-Verify rollback with `uname -r`, `modinfo dw9719`, and
-`./tests/enumeration.sh`. This neither switches kernels nor changes the boot
-default. The older linux-surface kernel is not used as part of rollback.
-
-## Future module or package intervention
-
-No custom module, DKMS package, repository setting, or module-load rule has
-been installed. If one is introduced later, this file must be updated in the
-same change with its exact source version, install paths, unload/remove
-commands, initramfs implications, and the known-good kernel fallback.
+Verify with `uname -r`, `modinfo dw9719`, and `./tests/enumeration.sh`. This
+neither switches kernels nor changes the boot default.

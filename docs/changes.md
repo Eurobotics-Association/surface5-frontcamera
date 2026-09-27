@@ -422,3 +422,29 @@ the true portal Camera property returned. It changes no device ACL, kernel
 component, or global system configuration. The target is enabled and its exact
 uninstall command is documented. A fresh logout/login or reboot check remains
 required to prove that the target fires at the next graphical-session start.
+
+### Unified browser V4L2 deployment (2026-09-27)
+
+Firefox was retested against the same native `/dev/video20`
+`Surface5_Front_Camera_HD` route already verified in Brave. The repository
+WebRTC diagnostic reported a 1280x720, 30 FPS track and three changing,
+non-black pixel samples; the operator also confirmed visible Firefox video.
+This establishes one browser-neutral fixed-HD V4L2 path for both system
+Firefox and Brave. It has better image stability on the reference host than
+the prior Firefox-only PipeWire virtual-source route.
+
+The deployable product is now `EBtx-surface5-HDCam-V4L2 2.0.260927`. Its
+default installer is system-wide: it installs only the kernel-provided
+`v4l2loopback` policy, a global on-demand user bridge, global Internet-menu
+entries, and the durable localhost WebRTC diagnostic assets. It does not
+modify a normal browser profile or persist a browser feature flag. Optional
+`--user` deployment adds only that user's menu/Desktop convenience entries.
+The shared Stop entry releases the one V4L2 bridge.
+
+The old Firefox PipeWire profile, virtual source, recovery unit and its
+browser-specific scripts have been retired from the repository. A user-mode
+migration removes only their known project-owned files; it never removes a
+normal browser profile. The installed diagnostic is now a required maintenance
+control: it starts a transient server which survives its launcher shell,
+records only textual logs beneath the private Pictures test directory, and
+proves moving frames rather than mere enumeration.

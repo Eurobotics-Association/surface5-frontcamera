@@ -1,65 +1,88 @@
 # Surface Pro 5 front camera on Linux
 
-Reproducible investigation of the Microsoft Surface Pro 5 (model 1796) front
-camera (OmniVision OV5693) on Zorin OS.
+Reproducible work for the Microsoft Surface Pro 5 (1796) OV5693 front camera
+on Zorin OS / Ubuntu generic kernels. The reference target is
+`7.0.0-31-generic`; linux-surface is comparison evidence only, not the
+solution.
 
-## Design target
+## Install
 
-```text
-Microsoft Surface Pro 5 (1796)
-Zorin OS 18.1 / Ubuntu 24.04 base
-Ubuntu generic kernel 7.x
-Current development target: 7.0.0-31-generic
+For the default all-desktop-user installation, run this single command in a
+terminal as an ordinary desktop user:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Eurobotics-Association/surface5-frontcamera/main/scripts/install-from-github.sh | bash
 ```
 
-The older installed `6.18.7-surface-1` linux-surface kernel is a source and
-module comparison reference only. It is **not** this project's intended
-solution and must not become the permanent camera kernel.
+The bootstrap downloads the complete repository archive from GitHub and then
+runs its versioned system installer with `sudo`; the administrator password
+prompt appears during installation. It installs the guarded native V4L2 policy,
+the on-demand bridge, global Firefox/Brave Internet-menu entries, Stop entry,
+and the browser diagnostic. It does not change normal browser profiles or
+enable browser feature flags.
 
-## Current status
+If you already cloned the repository, use the equivalent local command:
 
-The upstream DW9719 I2C ID-table restoration is **verified** on the target
-kernel. The per-kernel `/updates/dkms/dw9719.ko` override bound the VCM,
-completed the CIO2 graph, exposed OV5693 and `Internal front camera`, produced
-1280x720 NV12 frame data, and completed five independent start/stop cycles.
-No kernel switch or reboot was required.
+```bash
+./scripts/install-v4l2-camera.sh
+```
 
-The recurring `frame-000001` is now identified as an all-zero startup frame,
-not frozen output; subsequent 1280x720 frames vary normally. Cheese displays
-usable live front video after manual selection. WirePlumber initially skipped
-media devices after permission-denied discovery, but a user-service restart
-now exposes both libcamera sources and makes the Camera portal present.
+After installation, start **Firefox — Surface5 HD Front Camera** or **Brave —
+Surface5 HD Front Camera**, allow the camera at the site, and select
+`Surface5_Front_Camera_HD`. Use **Stop Surface5 HD Front Camera** when finished
+to release the physical camera and turn off its LED.
 
-Firefox WebRTC is verified on the reference Surface Pro 5 when it uses the
-repository-managed fixed-HD virtual source. The ordinary 640x480 physical
-camera path remains black on this machine, so applications must select
-`Surface5_Front_Camera_HD`, not `Built-in Front Camera`. Brave WebRTC is also
-verified through the separately deployed native-V4L2 fixed-HD bridge; its
-experimental Chromium PipeWire backend remains unusable.
+## Current verified result
 
-A subsequent read-only snapshot found the VCM still bound but no media/video
-nodes in the restricted agent execution namespace. That namespace overlays
-`/dev` with a private tmpfs and cannot be used to judge the host camera graph;
-the verified live result remains the relevant machine evidence. Follow-up
-capture and desktop tests must run from the normal host user session. See
-[docs/changes.md](docs/changes.md).
+The upstream DW9719 I2C ID-table restoration gives the reference Surface a
+complete CIO2/IMGU/libcamera graph and working front capture. Cheese displays
+the physical front camera. Browser-compatible capture is the fixed-HD native
+V4L2 camera `Surface5_Front_Camera_HD` at 1280×720.
 
-## Repository map
+It is verified with **system Firefox and Brave**: the repository WebRTC test
+reported changing non-black 1280×720 / 30 FPS frames, and the operator
+confirmed visible WebcamTests video in both. Direct physical browser capture
+can negotiate a black/unstable 640×480 stream, so select
+`Surface5_Front_Camera_HD` for calls.
 
-- [Baseline facts](docs/baseline.md)
-- [Stack architecture](docs/architecture.md)
-- [Upstream research and patch audit](docs/research.md)
-- [Diagnostics and test procedure](docs/testing.md)
-- [Firefox desktop deployment](docs/firefox-deployment.md)
-- [Brave desktop deployment](docs/brave-deployment.md)
-- [Developer and AI deployment guide](docs/developer-deployment.md)
-- [Change plan and results](docs/changes.md)
-- [Rollback](docs/rollback.md)
+This result is specific to the reference Surface Pro 5, OV5693/IPU3 graph, and
+tested Ubuntu/Zorin stack. It is a safe starting point for compatible hosts,
+not a guarantee for every Surface or Debian-based machine.
 
-## Reproducible commands
+## Installation details
 
-All scripts run as the normal user and write their output outside the Git tree
-by default.
+An administrator can also install the default all-desktop-user deployment from
+a checked-out copy:
+
+```bash
+./scripts/install-v4l2-camera.sh
+```
+
+It requests `sudo` only for guarded native module policy and global menu
+integration. It adds Internet-menu entries for Firefox, Brave, Stop and the
+diagnostic. It never changes normal browser profiles or browser flags.
+
+It is versioned and idempotent:
+
+```bash
+./scripts/install-v4l2-camera.sh --status
+./scripts/install-v4l2-camera.sh --version
+```
+
+Desktop icons are per-user. A logged-in user can add that user's shortcuts
+after system setup with `./scripts/install-v4l2-camera.sh --user`.
+
+See [install, use and rollback](docs/v4l2-deployment.md).
+
+## Verify
+
+**Surface5 HD Camera Diagnostic** is installed with the deployment. It starts
+the bridge, serves the repository timeout-bounded WebRTC page on localhost,
+and logs only textual events under `~/Pictures/surface5-frontcamera-tests/`.
+The `permission-then-virtual-hd` result must name the HD camera, show 1280×720
+and report changing `FRAME_PIXELS` with `allBlack:false`. No frames are stored.
+
+For source diagnostics:
 
 ```bash
 ./scripts/collect-baseline.sh
@@ -67,121 +90,33 @@ by default.
 ./tests/capture.sh --frames 8
 ./tests/restart-stream.sh --cycles 5
 ./tests/browser-webrtc-test.sh
-./scripts/build-dw9719-7.0.sh
 ./scripts/status.sh
-./tests/host-validation.sh
 ```
 
-`host-validation.sh` must run in the normal host desktop session. It retains
-private logs, raw frames, hashes, statistics, and selected JPEGs under
-`~/Pictures/surface5-frontcamera-tests/<timestamp>/`; these images are never
-committed and must be handled as personal data.
-
-`capture.sh` records temporary raw frames only for objective checks (count,
-size, SHA-256, Y-plane statistics, and duplicate-frame detection). It deletes
-them by default; use `--keep` only when inspecting a local, private capture.
-
-`browser-webrtc-test.sh` serves a localhost-only, timeout-bounded diagnostic
-and records textual browser API events under the same private test directory.
-It neither records camera frames nor changes a browser profile.
-
-## Firefox PipeWire fixed-HD integration (reference-specific)
-
-The repository deploys an isolated Firefox profile and a user-owned fixed-HD
-PipeWire source on the verified Surface Pro 5 / Ubuntu-or-Zorin reference
-stack. It does not modify a normal Firefox profile. This is a tested
-workaround for this hardware and stack, **not a general installer for other
-Surface models or Debian/Ubuntu computers**. Their sensors, libcamera
-pipelines, PipeWire versions, and format behaviour must be validated first.
-
-The current reference host has a verified format boundary: direct libcamera
-and PipeWire produce changing front-camera pixels at 1280x720, but their
-default 640x480 mode is all black. The installer adds the user-level virtual
-source `Surface5_Front_Camera_HD`, which holds the physical source at 1280x720.
-Firefox has been verified with this source by the localhost changing-pixel
-test and by visible 1280x720 video at WebcamTests.
+## Roll back browser integration
 
 ```bash
-./scripts/install-firefox-pipewire.sh
-./scripts/status-firefox-pipewire.sh
-./scripts/install-firefox-pipewire.sh --version
-./scripts/install-firefox-pipewire.sh --status
+./scripts/install-v4l2-camera.sh --rollback
+./scripts/install-v4l2-camera.sh --user --rollback  # optional per-user icons
 ```
 
-The installer reports Firefox and Brave when present. Firefox is the supported
-path; Brave is detected but left untouched and reported as unsupported. It also
-adds two application-menu entries: **Firefox — Surface5 HD Front Camera** and
-**Stop Surface5 HD Front Camera**. Start Firefox using the first entry, grant
-camera permission, and select `Surface5_Front_Camera_HD` after labels appear.
-Use the second entry after a call to release the camera and turn off its LED.
-The same two launchers are also placed directly on the desktop.
+Rollback removes only project policy, units, launcher assets, menu entries and
+trace. It does not remove browsers, normal profiles, private tests, or
+unrelated configuration.
 
-The service-based menu and Desktop launcher have been verified end to end at
-WebcamTests: `Surface5_Front_Camera_HD` delivered a visible 1280x720 RGB stream
-at 29 FPS. Select that virtual source for calls; the physical front source is
-not the supported WebRTC path on this reference host.
+## Repository map
 
-The installer validates Firefox and required user services, recovers the
-libcamera source, confirms the Camera portal, and fails safely if its supported
-hardware source is absent. Run the local virtual-HD diagnostic once after
-installation or an update before relying on a call. Full prerequisites,
-installation, verification, limits, exact deployed paths, and rollback are in
-[Firefox desktop deployment](docs/firefox-deployment.md). To roll back
-everything it deployed:
-
-```bash
-./scripts/install-firefox-pipewire.sh --rollback
-```
-
-`--rollback` is the versioned convenience entry point for the same scoped
-rollback as `./scripts/uninstall-firefox-pipewire.sh`.
-
-This also removes the managed fixed-HD virtual source and the WirePlumber
-recovery unit; normal Firefox profiles remain untouched.
-
-The HD bridge is deliberately not enabled at login. The Firefox desktop
-launcher starts it before opening Firefox; the Stop desktop entry releases it
-after a call and turns off its privacy LED.
-
-Brave is supported through [Brave desktop deployment](docs/brave-deployment.md):
-the native kernel loopback module and user-level fixed-HD V4L2 bridge expose
-`Surface5_Front_Camera_HD` to Brave's ordinary camera backend. Do not enable
-Chromium's experimental PipeWire camera feature; it times out on this host.
-
-After the current kernel has passed the reviewed controlled test, the guarded
-maintenance commands are:
-
-```bash
-./scripts/status.sh
-sudo ./scripts/install.sh
-sudo ./scripts/uninstall.sh
-```
-
-`install.sh` first examines the target kernel's packaged (non-override)
-`dw9719` module. It does nothing when the packaged driver already advertises
-`i2c:dw9719`; it currently refuses every unreviewed ABI except
-`7.0.0-31-generic` rather than forcing an old source onto a later kernel.
-
-## Safety
-
-Only `scripts/install.sh`, `scripts/uninstall.sh`, and the historical
-per-kernel installer are privileged helpers. Kernel changes, module
-replacement, configuration changes, and reboots are always described with
-verification and rollback before execution.
-
-## Maintenance and community feedback
-
-The generic installer inspects a target kernel's native `dw9719` module and
-skips itself when the official fix is present, so it cannot mask a fixed Ubuntu
-kernel. It is deliberately source/API-guarded while support for future ABIs is
-reviewed. See [maintenance.md](docs/maintenance.md).
-
-Verified findings will be prepared for the existing linux-surface and Ubuntu
-bug discussions, but are never posted under an operator identity without
-approval. See [community-report.md](docs/community-report.md).
+- [Browser deployment](docs/v4l2-deployment.md)
+- [Developer and AI maintenance contract](docs/developer-deployment.md)
+- [Diagnostics and test procedure](docs/testing.md)
+- [Stack architecture](docs/architecture.md)
+- [Baseline facts](docs/baseline.md)
+- [Verified changes](docs/changes.md)
+- [Kernel/module maintenance](docs/maintenance.md)
+- [Rollback](docs/rollback.md)
+- [Licensing](docs/licensing.md)
 
 ## License
 
-This project is GPL-2.0-only; the full text is in [COPYING](COPYING). The
-vendored kernel-derived DW9719 driver preserves its upstream `GPL-2.0` SPDX
-identifier and copyright notice. See [licensing.md](docs/licensing.md).
+GPL-2.0-only; see [COPYING](COPYING). Vendored kernel-derived DW9719 code
+keeps its upstream SPDX and copyright notices.

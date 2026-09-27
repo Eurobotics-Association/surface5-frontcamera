@@ -1,237 +1,54 @@
 # Testing
 
-## Principles
+## Safety boundary
 
-Run tests as the desktop user. They do not need sudo and do not load modules,
-modify media links, or retain imagery by default. A passing enumeration is not
-a capture pass. Tests and the module build target Ubuntu generic
-`7.0.0-31-generic`, not the installed linux-surface reference kernel.
+Run camera/browser tests in the normal graphical host session. An automated
+agent may have a private `/dev`; absence of camera nodes there is not evidence
+of host regression. Private artifacts belong only under
+`~/Pictures/surface5-frontcamera-tests/`; never commit images, frames, profiles
+or logs containing personal data.
 
-## Baseline collection
+## Kernel and libcamera controls
 
 ```bash
 ./scripts/collect-baseline.sh
-```
-
-The script creates a timestamped report under `/tmp` unless `--output DIR` is
-specified. It redacts the DMI serial number and records unavailable commands
-or inaccessible kernel logs explicitly.
-
-## Module inspection
-
-```bash
-./scripts/build-dw9719-7.0.sh
-```
-
-This builds the upstream DW9719 backport in an ignored workspace, checks the
-exact target headers and vermagic, and fails unless `i2c:dw9719` is exported.
-It neither installs nor loads the module.
-
-The experimental privileged installer adds a second gate before copying a
-module: it must find the packaged DW9719 module for `7.0.0-31-generic` and its
-vermagic must equal the patched artifact after removal of trailing whitespace
-only. This check is intentionally against the installed stock module, not an
-assumed version string.
-
-## Enumeration
-
-```bash
 ./tests/enumeration.sh
-```
-
-Pass criteria: a media node exists, `cam -l` lists an Internal front camera,
-and the OV5693 and CIO2 drivers are bound. The script emits a diagnostic report
-even on failure.
-
-## Frame capture and sanity
-
-```bash
 ./tests/capture.sh --frames 8
-./tests/capture.sh --width 1280 --height 720 --frames 16
-```
-
-The capture test chooses the front camera listed by `cam -l`, requests NV12 raw
-frames with libcamera, and verifies command success, requested frame count,
-nonzero and non-truncated NV12 file sizes, and that not every SHA-256 hash is
-identical. It also reports Y-plane minimum, maximum, mean, standard deviation,
-luminance diversity, black/near-uniform flags, and successive-frame
-comparisons. Captures are kept only with `--keep`; no imagery belongs in Git.
-
-All-black or near-uniform sequences and completely frozen Y-plane sequences
-fail the test. A single suspicious frame or repeated first frame across fresh
-cycles is explicitly reported but does not alone fail: repeat the test while
-changing the scene to distinguish an initialization artifact from stale data.
-These checks do not establish color calibration or visual quality; inspect a
-private local capture separately if needed.
-
-## Host validation and visual evidence
-
-Run only in the normal Zorin desktop host session:
-
-```bash
+./tests/restart-stream.sh --cycles 5
 ./tests/host-validation.sh
 ```
 
-It retains private logs, raw NV12 frames, hashes, statistics, and JPEGs under
-`~/Pictures/surface5-frontcamera-tests/<timestamp>/`, including frame 000000,
-the `frame-000001-BLACK-STARTUP.jpg`, frame 000002, a middle frame, and a final
-frame. It prints the exact path and an `xdg-open` command. Do not commit these
-personal images or raw frames.
+Cheese and direct 1280×720 libcamera capture are physical-camera controls.
+The direct 640×480 browser path can be black on this host; browser support uses
+the fixed-HD V4L2 bridge instead.
 
-The known frame-000001 SHA-256 is
-`9ee1d13fd6ed345f060ab756351293df8c9fedf100c25a4366a9c249bc9c95f6`; its Y
-plane is entirely zero and is reported as a canonical startup frame, not frozen
-output. Additional black/uniform frames and exact repeats remain diagnostics.
+## Installed browser diagnostic
 
-## Restart resilience
+Install once with `./scripts/install-v4l2-camera.sh`, then open **Surface5 HD
+Camera Diagnostic**. It starts the bridge and a transient localhost server,
+opens `webrtc-camera-test.html`, and saves textual events only. Do not recreate
+ad-hoc `/tmp` HTML pages or terminal-owned HTTP servers.
 
-```bash
-./tests/restart-stream.sh --cycles 5
-```
+Use `permission-then-virtual-hd`. It reports device enumeration before/after
+permission, a permission probe, exact camera selection, `getUserMedia`, track
+settings/capabilities, playback dimensions, separate timeouts, and four
+in-memory frame samples. Pass only when `Surface5_Front_Camera_HD` is 1280×720
+and `FRAME_PIXELS` has changed frames with `allBlack:false`.
 
-This invokes a short front-camera capture in fresh processes for each cycle.
-Pass criteria: every cycle succeeds and produces the requested number of
-nonempty frames. Test at least two resolutions after basic capture passes.
+Run it in both Firefox and Brave after browser updates, then check visible
+moving video at a real call site. Use **Stop Surface5 HD Front Camera** after
+testing; it releases the bridge and should turn off the LED.
 
-## Application-facing validation
-
-After native capture passes:
+## Deployment regression checks
 
 ```bash
-gst-launch-1.0 -e libcamerasrc ! queue ! fakesink num-buffers=30
-pw-cli ls Node | grep -iE 'camera|libcamera|video'
+bash -n scripts/install-v4l2-camera.sh scripts/desktop-launch-v4l2-browser.sh \
+  scripts/desktop-stop-surface5-hd-camera.sh scripts/launch-v4l2-camera-diagnostic.sh
+./tests/v4l2-deployment.sh
+./scripts/install-v4l2-camera.sh --status
 ```
 
-Record return status and relevant output in `docs/changes.md`. Only test a
-normal desktop application when a graphical session is available; do not claim
-PipeWire or application success merely because the packages are installed.
-
-On the target system `pipewire-libcamera`, `xdg-desktop-portal`, the
-GStreamer libcamera plugin, and Cheese are installed. That only establishes the
-available desktop path. A post-live-test snapshot has no PipeWire camera nodes
-in the restricted agent namespace because that namespace overlays `/dev` with
-a private tmpfs. It cannot judge the host pipeline. Run desktop validation from
-the normal host user session with the verified camera graph available.
-
-## Browser/WebRTC diagnostic
-
-Run `./tests/browser-integration-diagnostics.sh` only in the normal desktop
-host session. It is read-only and retains PipeWire, WirePlumber, portal,
-package, browser-packaging, and filtered-log evidence below `~/Pictures/`.
-Before testing webcamtests.com, ensure its browser camera permission is
-**Allow**; do not erase browser settings or profiles.
-
-For a deterministic browser-level control, run:
-
-```bash
-./tests/browser-webrtc-test.sh
-```
-
-Open the displayed `127.0.0.1` URL in exactly one browser and keep the helper
-running while granting the browser prompt. The page separately time-bounds and
-reports `mediaDevices`, enumeration before permission, `getUserMedia`,
-enumeration after permission, track label/settings/capabilities, and actual
-video dimensions after playback. It also samples four downscaled video frames
-in memory and reports luminance extrema, mean, and whether pixels changed; an
-`*_FRAME_PIXELS` result with `allBlack: true` is a failure even if the browser
-reports a live track and non-zero dimensions. It stores no image data. Use
-**Run permission-then-front test** after reloading the page to test the front
-camera. Browser privacy rules may hide physical camera labels before the
-localhost origin receives a `getUserMedia()` permission grant; the test records
-that probe, releases it, and then makes an exact front-camera request. The
-default-then-front control is kept to expose reconfiguration failures. When a post-permission label includes
-`front`, it makes a second, exact-device request and reports that stream
-separately. A timeout is recorded distinctly as
-`ENUMERATE_BEFORE_TIMEOUT`, `GETUSERMEDIA_TIMEOUT`, or
-`ENUMERATE_AFTER_TIMEOUT`. The helper stops its own localhost server when
-interrupted and writes only textual HTTP/event logs below the private Pictures
-test directory; it does not retain frames or alter browser profiles. Each run
-also stops its browser stream before reporting `TEST_COMPLETE`, so it does not
-leave the camera held for a following control.
-
-**Run permission-then-front HD test** requests the exact 1280x720 front mode.
-It is an investigation control, not a browser workaround: it determines
-whether Firefox can consume the currently known-good native/PipeWire mode.
-
-## System Firefox PipeWire deployment (reference-specific)
-
-This path uses the system `firefox` executable, never a portable browser or a
-normal Firefox profile. It installs the PipeWire preference only in
-`~/.local/share/surface5-frontcamera/firefox-pipewire-profile`, enables the
-repository's user-session recovery, and verifies the front source plus Camera
-portal before reporting integration readiness. It is verified only for the
-reference Surface Pro 5 / Ubuntu-or-Zorin stack; it is not a generic Debian or
-other-Surface deployment claim.
-
-```bash
-./scripts/install-firefox-pipewire.sh
-./scripts/status-firefox-pipewire.sh
-```
-
-The installer detects Firefox and Brave. It configures only Firefox, then
-installs the application-menu entries **Firefox — Surface5 HD Front Camera**
-and **Stop Surface5 HD Front Camera**. The Firefox entry starts the fixed-HD
-bridge. At WebcamTests, grant the Firefox prompt, select
-`Surface5_Front_Camera_HD`, and click **Tester ma webcam**. On the reference
-host this produced a visible, changing 1280x720 image. The local
-`browser-webrtc-test.sh` is the programmatic pixel-flow verification control:
-its virtual-HD mode must report changing, non-black `VIRTUAL_HD_FRAME_PIXELS`.
-Use the Stop entry after a call to release the physical camera and turn off its
-LED. Roll back the managed profile and recovery unit with
-`./scripts/uninstall-firefox-pipewire.sh`.
-
-## Fixed-HD virtual camera bridge
-
-The reference OV5693/IPU3 pipeline currently produces usable changing frames
-at 1280x720 but all-black frames at its default 640x480 negotiation. The
-Firefox installer deploys a user-level GStreamer/PipeWire bridge that keeps the
-physical `libcamera_input.__SB_.PCI0.I2C2.CAMF` source at 1280x720 and exposes
-the separate virtual source `Surface5_Front_Camera_HD`.
-
-The bridge is user-owned, has no root privileges, changes no camera ACL or
-browser profile, and has a paired status/uninstall path:
-
-```bash
-./scripts/install-user-hd-camera-bridge.sh
-./scripts/start-user-hd-camera-bridge.sh
-./scripts/status-user-hd-camera-bridge.sh
-./scripts/stop-user-hd-camera-bridge.sh
-./scripts/uninstall-user-hd-camera-bridge.sh
-```
-
-Use it only on the validated Surface Pro 5 reference hardware. Select the
-virtual source explicitly in the browser or conferencing application; do not
-assume that a browser will prefer it over the physical cameras. The reference
-Firefox control passed after installation: `Surface5_Front_Camera_HD` delivered
-changing, non-black 1280x720 frames in the local WebRTC diagnostic and visible
-video at WebcamTests. Re-run that control after package updates or before
-relying on a different application.
-
-The bridge is installed but deliberately inactive at login because a fixed-HD
-source holds the physical camera open. The managed Firefox launcher starts it
-automatically. For another application, run the start command immediately
-before the call and the stop command immediately after it; stopping the bridge
-removes the virtual source and turns off the camera privacy LED.
-
-After installation, use **Run virtual HD camera test** in the local WebRTC
-diagnostic. It selects `Surface5_Front_Camera_HD` with ordinary device
-selection rather than an exact resolution constraint; pass only when the
-reported `VIRTUAL_HD_FRAME_PIXELS` samples are changing and non-black.
-
-## WirePlumber graphical-session recovery
-
-The target session reproduced a WirePlumber startup race: the service started
-before the graphical logind ACL existed for `/dev/media0` and `/dev/media1`,
-then never rediscovered libcamera after the ACL appeared. The repository unit
-restarts WirePlumber once when `graphical-session.target` starts; it does not
-change device permissions, poll, or run as root.
-
-```bash
-./scripts/install-user-camera-recovery.sh
-./scripts/status-user-camera-recovery.sh
-./scripts/uninstall-user-camera-recovery.sh
-```
-
-After installation, verify on the next logout/login (or reboot) that `wpctl
-status -n` lists `libcamera_input.__SB_.PCI0.I2C2.CAMF` and the portal Camera
-property is true without a manual restart.
+Before a release validate initial install, a genuine no-op repeat, both browser
+launchers, changing frames, real-site video, Stop/LED release, and scoped
+system/user rollback. Profile edits, persistent browser flags, manual portal
+changes, and temporary servers are diagnostic-only, never deployment fixes.

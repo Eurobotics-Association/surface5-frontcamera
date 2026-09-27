@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Surface5 HD Camera Diagnostic
+Comment=Open the local WebRTC camera diagnostic URL
+Exec=@LAUNCHER@
+TryExec=@LAUNCHER@
+Icon=video-camera
+Terminal=true
+Categories=Development;AudioVideo;
+StartupNotify=true
