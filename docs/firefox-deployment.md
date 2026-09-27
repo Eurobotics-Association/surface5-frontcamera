@@ -59,9 +59,8 @@ an update or repair when the camera is not in use.
 
 ## Use
 
-Open **Firefox — Surface5 HD Front Camera** from the desktop application's
-Network/Internet category. The separate **Stop Surface5 HD Front Camera**
-entry is in Utilities.
+Open **Firefox — Surface5 HD Front Camera** or **Stop Surface5 HD Front
+Camera** from the desktop application's Network/Internet category.
 
 The Firefox entry starts the bridge, then opens the isolated Firefox profile.
 On a WebRTC

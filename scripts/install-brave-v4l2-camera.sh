@@ -47,7 +47,7 @@ desktop_launcher="$applications/surface5-brave-v4l2-camera.desktop"
 desktop_stopper="$applications/surface5-stop-brave-v4l2-camera.desktop"
 shortcut_launcher="$desktop_dir/Brave — Surface5 HD Front Camera.desktop"
 shortcut_stopper="$desktop_dir/Stop Brave Surface5 HD Front Camera.desktop"
-if [ -f "$manifest" ] && grep -Fxq "DEPLOYMENT_PRODUCT=$DEPLOYMENT_PRODUCT" "$manifest" && grep -Fxq "DEPLOYMENT_VERSION=$DEPLOYMENT_VERSION" "$manifest" && cmp -s "$root/systemd/user/$unit" "$unit_destination" && cmp -s "$root/scripts/desktop-launch-brave-v4l2-camera.sh" "$launcher" && cmp -s "$root/scripts/desktop-stop-brave-v4l2-camera.sh" "$stopper" && [ -x "$shortcut_launcher" ] && [ -x "$shortcut_stopper" ]; then
+if [ -f "$manifest" ] && grep -Fxq "DEPLOYMENT_PRODUCT=$DEPLOYMENT_PRODUCT" "$manifest" && grep -Fxq "DEPLOYMENT_VERSION=$DEPLOYMENT_VERSION" "$manifest" && cmp -s "$root/systemd/user/$unit" "$unit_destination" && cmp -s "$root/scripts/desktop-launch-brave-v4l2-camera.sh" "$launcher" && cmp -s "$root/scripts/desktop-stop-brave-v4l2-camera.sh" "$stopper" && grep -Fxq 'Categories=Network;' "$desktop_stopper" && [ -x "$shortcut_launcher" ] && [ -x "$shortcut_stopper" ] && grep -Fxq 'Categories=Network;' "$shortcut_stopper"; then
     echo "DEPLOYMENT=$DEPLOYMENT_PRODUCT $DEPLOYMENT_VERSION already-current; no services or files changed."
     exit 0
 fi

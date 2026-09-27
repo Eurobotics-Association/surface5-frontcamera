@@ -7,5 +7,5 @@ Exec=@STOPPER@
 TryExec=@STOPPER@
 Icon=camera-video
 Terminal=false
-Categories=Utility;
+Categories=Network;
 StartupNotify=true

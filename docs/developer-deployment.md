@@ -27,7 +27,7 @@ frames before deployment is proposed.
 
 ```text
 DEPLOYMENT_PRODUCT=EBtx-surface5-HDCam-patch
-DEPLOYMENT_VERSION=1.0.260926
+DEPLOYMENT_VERSION=1.1.260927
 ```
 
 The installer writes this local, user-owned record:

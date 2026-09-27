@@ -63,7 +63,7 @@ details in `docs/developer-deployment.md`.
 
 - The source of truth for the deployed product identity is
   `config/deployment-version.env` (currently
-  `EBtx-surface5-HDCam-patch 1.0.260926`). Bump the version for a released
+  `EBtx-surface5-HDCam-patch 1.1.260927`). Bump the version for a released
   deployment change; do not put host-specific state in Git.
 - The installer-owned trace is
   `~/.local/share/surface5-frontcamera/deployment.env`, mode 600. It records
